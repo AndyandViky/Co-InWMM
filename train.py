@@ -55,9 +55,10 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--max_iter', dest='max_iter', help='max iteration of variational inference', default=100)
     args = parser.parse_args()
 
-    data = scio.loadmat('./datas/{}.mat'.format(args.data_name))
-    labels = data['z'].reshape(-1).astype(np.int)
-    data = data['data']
+    # data = scio.loadmat('./datas/{}.mat'.format(args.data_name))
+    # labels = data['z'].reshape(-1).astype(np.int)
+    # data = data['data']
+    data = scio.loadmat('./datas/Data3.mat')['Data']
     print('begin training......')
     print('========================dataset is {}========================'.format(args.data_name))
 
@@ -74,5 +75,5 @@ if __name__ == "__main__":
     trainer.train(data)
     pred = trainer.model.predict(data)
     category = np.unique(np.array(pred))
-    console_log(pred, data=data, labels=labels, model_name='===========hdp-vmf')
+    # console_log(pred, data=data, labels=labels, model_name='===========hdp-vmf')
 

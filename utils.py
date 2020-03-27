@@ -76,9 +76,9 @@ def calculate_mix(a, b, K):
     return pi
 
 
-def d_hyp1f1(D, k):
-
-    result = hyp1f1(2, ((D + 2) / 2), k) / hyp1f1(1, D / 2, k)
+def d_hyp1f1(a, b, k):
+    
+    result = hyp1f1(a + 1, b + 1, k) / hyp1f1(a, b, k)
     return result
 
 

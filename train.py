@@ -42,7 +42,7 @@ if __name__ == "__main__":
                                     description='Hierarchical Dirichlet process Mixture Models of datas Distributions')
     parser.add_argument('-c', '--algorithm_category', dest='algorithm_category', help='choose VIModel:0 or SVIModel:1',
                         default=0)
-    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='big_data')
+    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='big_data2')
     parser.add_argument('-lp', '--load_params', dest='load_params', help='load_params', default=1)
     parser.add_argument('-verbose', '--verbose', dest='verbose', help='verbose', default=1)
     # hyper parameters
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     data = data['data']
 
     # data1 = scio.loadmat('./datas/Data4.mat')['Data']
-    # scio.savemat('./datas/big_data1.mat', {'data': data1, 'z': labels})
+    # scio.savemat('./datas/big_data2.mat', {'data': data1, 'z': labels})
     print('begin training......')
     print('========================dataset is {}========================'.format(args.data_name))
 

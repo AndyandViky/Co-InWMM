@@ -47,18 +47,17 @@ if __name__ == "__main__":
     parser.add_argument('-verbose', '--verbose', dest='verbose', help='verbose', default=1)
     # hyper parameters
     parser.add_argument('-t', '--T', dest='T', help='truncation level T', default=10)
-    parser.add_argument('-z', '--zeta', dest='zeta', help='zeta', default=0.02)
-    parser.add_argument('-u', '--u', dest='u', help='u', default=0.9)
-    parser.add_argument('-v', '--v', dest='v', help='v', default=0.01)
     parser.add_argument('-gamma', '--gamma', dest='gamma', help='second stick gamma', default=1)
     parser.add_argument('-mth', '--mix_threshold', dest='mix_threshold', help='mix_threshold', default=0.05)
     parser.add_argument('-m', '--max_iter', dest='max_iter', help='max iteration of variational inference', default=100)
     args = parser.parse_args()
 
-    # data = scio.loadmat('./datas/{}.mat'.format(args.data_name))
-    # labels = data['z'].reshape(-1).astype(np.int)
-    # data = data['data']
-    data = scio.loadmat('./datas/Data3.mat')['Data']
+    data = scio.loadmat('./datas/{}.mat'.format(args.data_name))
+    labels = data['z'].reshape(-1).astype(np.int)
+    data = data['data']
+
+    # data1 = scio.loadmat('./datas/Data4.mat')['Data']
+    # scio.savemat('./datas/big_data1.mat', {'data': data1, 'z': labels})
     print('begin training......')
     print('========================dataset is {}========================'.format(args.data_name))
 
@@ -75,5 +74,6 @@ if __name__ == "__main__":
     trainer.train(data)
     pred = trainer.model.predict(data)
     category = np.unique(np.array(pred))
-    # console_log(pred, data=data, labels=labels, model_name='===========hdp-vmf')
+    print(category)
+    console_log(pred, labels=labels, model_name='===========hdp-vmf')
 

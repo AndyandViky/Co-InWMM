@@ -8,6 +8,7 @@
 @Time: 2020-02-06 15:10
 @Desc: utils.py
 """
+import math
 import numpy as np
 import warnings
 import scipy.io as scio
@@ -77,8 +78,39 @@ def calculate_mix(a, b, K):
 
 
 def d_hyp1f1(a, b, k):
-    
+
     result = hyp1f1(a + 1, b + 1, k) / hyp1f1(a, b, k)
+    if np.any(np.isnan(result)):
+        result = []
+        for i in range(k.shape[0]):
+            if k[i] < 10:
+                tol = 0.01
+            else:
+                tol = 0.1
+            iter = 1
+            stack = []
+            while True:
+                if iter % 2 == 0:
+                    temp = (a + iter / 2) / (b + iter - 1) / (b + iter) * k[i]
+                else:
+                    temp = (a - b - math.floor(iter / 2)) / (b + iter - 1) / (b + iter) * k[i]
+                if abs(temp) < tol:
+                    iter = iter - 1
+                    break
+                else:
+                    stack.append(temp)
+
+                if iter > 3000:
+                    break
+                iter = iter + 1
+            temp = 1
+            stack = np.vstack((d for d in stack)).reshape(-1)
+            while iter > 0:
+                temp = 1 + stack[iter - 1] / temp
+                iter = iter - 1
+            result.append(1 / temp)
+
+        result = np.vstack((d for d in result)).reshape(-1)
     return result
 
 

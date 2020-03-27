@@ -25,14 +25,10 @@ __params:__
 -lp Load hyper parameter or not 
 -verbose print information or not  
 
--k first truncation of model  
--t second truncation of model  
--tau stick hyper params of fist level  
--gamma stick hyper params of second level  
--th second level threshold of converge   
+-t truncation of model  
+-gamma stick hyper params
 -mth the threshold of Cluster number  
--sm second level max iteration  
 -m max iterations of training  
 
 __example:__  
-python train.py -name big_data -lp 1 -verbose 1 -k 8 -t 50 -tau 1 -gamma 1 -th 1e-7 -mth 0.01 -sm -1 -m 700
+python train.py -name big_data -lp 1 -verbose 1 -t 10 -gamma 1 -mth 0.01 -m 100

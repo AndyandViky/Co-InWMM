@@ -24,7 +24,7 @@ except ImportError as e:
 
 class VIModel:
     """
-    Variational Inference Dirichlet process Mixture Models of datas Distributions
+    Variational Inference Dirichlet process Mixture Models of Watson Distributions
     """
 
     def __init__(self, args):
@@ -59,15 +59,15 @@ class VIModel:
         self.prior = {
             'mu': np.sum(data, 0) / np.linalg.norm(np.sum(data, 0)),
             'zeta': 0.02,
-            'u': 0.1,
-            'v': 0.1,
+            'u': 1,
+            'v': 0.01,
             'gamma': 1,
         }
         mu = self.prior['mu'][np.newaxis, :]
         self.prior['zeta'] = np.max(np.linalg.eig(mu.T.dot(mu))[0])
 
-        self.u = np.ones(self.T) * 0.1
-        self.v = np.ones(self.T) * 0.1
+        self.u = np.ones(self.T) * self.prior['u']
+        self.v = np.ones(self.T) * self.prior['v']
         self.zeta = np.ones(self.T)
         self.xi = np.ones((self.T, self.D))
         self.xi = self.xi / np.linalg.norm(self.xi, axis=1)[:, np.newaxis]
@@ -161,7 +161,7 @@ class VIModel:
             value, vector = np.linalg.eig(A)
             index = np.argmax(value)
             self.zeta[t] = value[index]
-            self.xi[t] = - vector[:, index]
+            self.xi[t] = vector[:, index]
 
     def update_g_h(self, rho):
         # compute g, h
@@ -184,6 +184,151 @@ class VIModel:
         # predict
         pred = predict(data, mu=self.xi, k=self.k, pi=self.pi, n_cluster=self.newJ)
         return pred
+
+    def fit_predict(self, data):
+
+        self.fit(data)
+        return self.predict(data)
+
+
+class CVIModel:
+    """
+    Collapsed Variational Inference Dirichlet process Mixture Models of Watson Distributions
+    """
+
+    def __init__(self, args):
+
+        self.T = args.T
+        self.max_k = 700
+        self.args = args
+        self.N = 300
+        self.D = 3
+        self.prior = dict()
+        self.newJ = args.T
+
+        self.gamma = None
+        self.u = None
+        self.v = None
+        self.zeta = None
+        self.xi = None
+        self.k = None
+
+        self.rho = None
+
+        self.temp_zeta = None
+        self.det = 1e-10
+
+    def init_params(self, data):
+
+        (self.N, self.D) = data.shape
+
+        self.prior = {
+            'mu': np.sum(data, 0) / np.linalg.norm(np.sum(data, 0)),
+            'zeta': 0.02,
+            'u': 1,
+            'v': 0.01,
+            'gamma': 0.5,
+        }
+        mu = self.prior['mu'][np.newaxis, :]
+        self.prior['zeta'] = np.max(np.linalg.eig(mu.T.dot(mu))[0])
+
+        self.u = np.ones(self.T) * self.prior['u']
+        self.v = np.ones(self.T) * self.prior['v']
+        self.zeta = np.ones(self.T)
+        self.xi = np.ones((self.T, self.D))
+        self.xi = self.xi / np.linalg.norm(self.xi, axis=1)[:, np.newaxis]
+        self.k = self.u / self.v
+
+        kmeans = KMeans(n_clusters=self.T).fit(data)
+        self.rho = repmat(caculate_pi(kmeans, self.N, self.T), self.N, 1)
+        # self.rho = np.ones((self.N, self.T)) * (1 / self.T)
+
+        self.update_zeta_xi(data, self.rho)
+        self.update_u_v(self.rho)
+
+    def compute_rho(self, x):
+
+        D = self.D
+        E_k = digamma(self.u) - digamma(self.u + self.v)
+        kdk1 = d_hyp1f1(0.5, D / 2, self.zeta * self.k)
+        kdk2 = d_hyp1f1(1.5, (D + 2) / 2, self.zeta * self.k) * kdk1
+        kdk3 = d_hyp1f1(0.5, D / 2, self.k)
+        temp = (1 / D * kdk1 + self.zeta * self.k * (
+                3 / ((D + 2) * D) * kdk2 - (1 / (D ** 2)) * kdk1 * kdk1)) * self.k * (
+                       E_k + np.log(self.zeta) - np.log(self.prior['zeta'] * self.k))
+        rho = gammaln(D / 2) - (D / 2) * np.log(2 * np.pi) + (D / 2) * E_k - np.log(
+            (self.k ** (D / 2)) * hyp1f1(0.5, D / 2, self.k)) - (D / 2 / self.k + 1 / D * kdk3) * (
+                           self.u / self.v - self.k) + self.k / D * kdk1 + temp * (
+                           x.dot(self.xi.T) ** 2)
+        # collapsed
+        index = np.array(range(x.shape[0]))
+        E_not_i = np.array([np.sum(self.rho[index != i], 0) for i in range(x.shape[0])])
+        E_not_i_eq_k = np.zeros((self.N, self.T))
+        for t in range(self.T-1):
+            E_not_i_eq_k[:, t] = np.sum(E_not_i[:, t + 1:], 1)
+
+        t = np.log(1 + E_not_i) + np.log(self.prior['gamma'] + E_not_i_eq_k) + np.log(1 + self.prior['gamma'] + E_not_i + E_not_i_eq_k)
+
+        rho += t
+        log_rho, log_n = log_normalize(rho)
+        rho = np.exp(log_rho)
+        return rho
+
+    def var_inf(self, x):
+
+        for ite in range(self.args.max_iter):
+            # compute rho
+            self.rho = self.compute_rho(x)
+
+            # compute k
+            self.k = self.u / self.v
+            self.k[self.k > self.max_k] = self.max_k
+
+            self.update_zeta_xi(x, self.rho)
+            self.update_u_v(self.rho)
+
+            print(ite)
+            if ite == self.args.max_iter - 1:
+                self.k = self.u / self.v
+                self.k[self.k > self.max_k] = self.max_k
+                if self.args.verbose:
+                    print('mu: {}'.format(self.xi))
+                    print('k: {}'.format(self.k))
+
+    def update_u_v(self, rho):
+
+        D = self.D
+        zeta = self.prior['zeta']
+        # compute u, v
+        self.u = self.prior['u'] + (D / 2) * (1 + np.sum(rho, 0)) + self.zeta * self.k / D * d_hyp1f1(0.5, D / 2, self.zeta * self.k)
+        self.v = self.prior['v'] + np.sum(rho, 0) * (D / (2 * self.k) + (1 / D) * d_hyp1f1(0.5, D / 2, self.k)) + \
+                 (D / (2 * self.k) + (zeta / D) * d_hyp1f1(0.5, D / 2, zeta * self.k))
+
+    def update_zeta_xi(self, x, rho):
+
+        # compute zeta, xi
+        mu = self.prior['mu'][np.newaxis, :] # 1 * d
+        D = self.D
+        for t in range(self.T):
+            temp = np.zeros((D, D))
+            for n in range(self.N):
+                temp += rho[n, t] * x[n:n+1].T.dot(x[n:n+1])
+            A = self.prior['zeta'] * mu.T.dot(mu) + temp
+            value, vector = np.linalg.eig(A)
+            index = np.argmax(value)
+            self.zeta[t] = value[index]
+            self.xi[t] = vector[:, index]
+
+    def fit(self, data):
+
+        self.init_params(data)
+        self.var_inf(data)
+        return self
+
+    def predict(self, data):
+        # predict
+        rho = self.compute_rho(data)
+        return np.argmax(rho, axis=1)
 
     def fit_predict(self, data):
 

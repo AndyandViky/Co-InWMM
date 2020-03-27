@@ -10,7 +10,7 @@ try:
     import argparse
     import numpy as np
 
-    from model import VIModel
+    from model import VIModel, CVIModel
     from scipy import io as scio
 
     from config import DATA_PARAMS, DATASETS_DIR
@@ -28,7 +28,7 @@ class Trainer:
         if int(args.algorithm_category) == 0:
             self.model = VIModel(args)
         else:
-            pass
+            self.model = CVIModel(args)
 
     def train(self, data):
 
@@ -42,7 +42,7 @@ if __name__ == "__main__":
                                     description='Hierarchical Dirichlet process Mixture Models of datas Distributions')
     parser.add_argument('-c', '--algorithm_category', dest='algorithm_category', help='choose VIModel:0 or SVIModel:1',
                         default=0)
-    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='big_data2')
+    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='big_data')
     parser.add_argument('-lp', '--load_params', dest='load_params', help='load_params', default=1)
     parser.add_argument('-verbose', '--verbose', dest='verbose', help='verbose', default=1)
     # hyper parameters
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     if int(args.load_params) == 1:
         args.T = T
         args.mix_threshold = mix_threshold
-        args.algorithm_category = algorithm_category
+        args.algorithm_category = 1
         args.max_iter = max_iter
 
     trainer = Trainer(args)

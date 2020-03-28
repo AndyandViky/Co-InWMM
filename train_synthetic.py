@@ -61,7 +61,7 @@ if __name__ == "__main__":
     print('begin training......')
     print('========================dataset is {}========================'.format(args.data_name))
 
-    T, mix_threshold, algorithm_category, max_iter, dim = DATA_PARAMS[
+    T, mix_threshold, algorithm_category, max_iter, dim, max_hy1f1_iter = DATA_PARAMS[
         args.data_name]
 
     if int(args.load_params) == 1:
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         args.mix_threshold = mix_threshold
         args.algorithm_category = 1
         args.max_iter = max_iter
-        args.max_hy1f1_iter = 3000
+        args.max_hy1f1_iter = max_hy1f1_iter
 
     trainer = Trainer(args)
     trainer.train(data)

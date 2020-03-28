@@ -79,6 +79,7 @@ def calculate_mix(a, b, K):
 
 def d_hyp1f1(a, b, k, iteration=3000):
 
+    warnings.filterwarnings('ignore')
     result = hyp1f1(a + 1, b + 1, k) / hyp1f1(a, b, k)
     if np.any(np.isnan(result)):
         result = []
@@ -104,12 +105,14 @@ def d_hyp1f1(a, b, k, iteration=3000):
                     break
                 iter = iter + 1
             temp = 1
+            warnings.filterwarnings('ignore')
             stack = np.vstack((d for d in stack)).reshape(-1)
             while iter > 0:
                 temp = 1 + stack[iter - 1] / temp
                 iter = iter - 1
             result.append(1 / temp)
 
+        warnings.filterwarnings('ignore')
         result = np.vstack((d for d in result)).reshape(-1)
     return result
 

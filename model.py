@@ -73,7 +73,7 @@ class VIModel:
         self.xi = self.xi / np.linalg.norm(self.xi, axis=1)[:, np.newaxis]
         self.k = self.u / self.v
 
-        kmeans = KMeans(n_clusters=self.T).fit(data)
+        kmeans = KMeans(n_clusters=self.T, max_iter=100).fit(data)
         self.rho = repmat(caculate_pi(kmeans, self.N, self.T), self.N, 1)
         # self.rho = np.ones((self.N, self.T)) * (1 / self.T)
         self.g = np.zeros(self.T)

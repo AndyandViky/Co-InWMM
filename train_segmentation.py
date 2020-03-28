@@ -64,7 +64,7 @@ if __name__ == "__main__":
     print('begin training......')
     print('========================dataset is {}========================'.format(args.data_name))
 
-    T, mix_threshold, algorithm_category, max_iter, dim = DATA_PARAMS[
+    T, mix_threshold, algorithm_category, max_iter, dim, max_hy1f1_iter = DATA_PARAMS[
         args.data_name]
 
     if int(args.load_params) == 1:
@@ -72,12 +72,12 @@ if __name__ == "__main__":
         args.mix_threshold = mix_threshold
         args.algorithm_category = algorithm_category
         args.max_iter = max_iter
-        args.max_hy1f1_iter = 1000
+        args.max_hy1f1_iter = max_hy1f1_iter
 
     trainer = Trainer(args)
     trainer.train(nor_data)
     pred = trainer.model.predict(nor_data)
     category = np.unique(np.array(pred))
     print(category)
-    console_log(pred, labels=None, model_name='===========cdp-wmm')
+    console_log(pred[:2000], data=nor_data[:2000], labels=None, model_name='===========cdp-wmm')
 

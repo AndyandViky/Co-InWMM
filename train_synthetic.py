@@ -14,7 +14,7 @@ try:
     from scipy import io as scio
 
     from config import DATA_PARAMS, DATASETS_DIR
-    from utils import console_log, get_data
+    from utils import console_log
 
 except ImportError as e:
     print(e)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # hyper parameters
     parser.add_argument('-t', '--T', dest='T', help='truncation level T', default=10)
     parser.add_argument('-gamma', '--gamma', dest='gamma', help='second stick gamma', default=1)
-    parser.add_argument('-mth', '--mix_threshold', dest='mix_threshold', help='mix_threshold', default=0.05)
+    parser.add_argument('-mth', '--mix_threshold', dest='mix_threshold', help='mix_threshold', default=0.01)
     parser.add_argument('-m', '--max_iter', dest='max_iter', help='max iteration of variational inference', default=100)
     args = parser.parse_args()
 
@@ -67,8 +67,9 @@ if __name__ == "__main__":
     if int(args.load_params) == 1:
         args.T = T
         args.mix_threshold = mix_threshold
-        args.algorithm_category = 0
+        args.algorithm_category = 1
         args.max_iter = max_iter
+        args.max_hy1f1_iter = 3000
 
     trainer = Trainer(args)
     trainer.train(data)

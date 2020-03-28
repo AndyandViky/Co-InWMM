@@ -154,10 +154,7 @@ class VIModel:
         mu = self.prior['mu'][np.newaxis, :] # 1 * d
         D = self.D
         for t in range(self.T):
-            temp = np.zeros((D, D))
-            for n in range(self.N):
-                temp += rho[n, t] * x[n:n+1].T.dot(x[n:n+1])
-            A = self.prior['zeta'] * mu.T.dot(mu) + temp
+            A = self.prior['zeta'] * mu.T.dot(mu) + x.T.dot(rho[:, t:t+1] * x)
             value, vector = np.linalg.eig(A)
             index = np.argmax(value)
             self.zeta[t] = value[index]
@@ -240,9 +237,9 @@ class CVIModel:
         self.xi = self.xi / np.linalg.norm(self.xi, axis=1)[:, np.newaxis]
         self.k = self.u / self.v
 
-        # kmeans = KMeans(n_clusters=self.T, max_iter=100).fit(data)
-        # self.rho = repmat(caculate_pi(kmeans, self.N, self.T), self.N, 1)
-        self.rho = np.ones((self.N, self.T)) * (1 / self.T)
+        kmeans = KMeans(n_clusters=self.T, max_iter=100).fit(data)
+        self.rho = repmat(caculate_pi(kmeans, self.N, self.T), self.N, 1)
+        # self.rho = np.ones((self.N, self.T)) * (1 / self.T)
 
         self.update_zeta_xi(data, self.rho)
         self.update_u_v(self.rho)
@@ -262,8 +259,7 @@ class CVIModel:
                            self.u / self.v - self.k) + self.k / D * kdk1 + temp * (
                            x.dot(self.xi.T) ** 2)
         # collapsed
-        index = np.array(range(x.shape[0]))
-        E_not_i = np.array([np.sum(self.rho[index != i], 0) for i in range(x.shape[0])])
+        E_not_i = np.sum(self.rho, 0, keepdims=True) - self.rho
         E_not_i_eq_k = np.zeros((self.N, self.T))
         for t in range(self.T-1):
             E_not_i_eq_k[:, t] = np.sum(E_not_i[:, t + 1:], 1)
@@ -309,12 +305,8 @@ class CVIModel:
 
         # compute zeta, xi
         mu = self.prior['mu'][np.newaxis, :] # 1 * d
-        D = self.D
         for t in range(self.T):
-            temp = np.zeros((D, D))
-            for n in range(self.N):
-                temp += rho[n, t] * x[n:n+1].T.dot(x[n:n+1])
-            A = self.prior['zeta'] * mu.T.dot(mu) + temp
+            A = self.prior['zeta'] * mu.T.dot(mu) + x.T.dot(rho[:, t:t+1] * x)
             value, vector = np.linalg.eig(A)
             index = np.argmax(value)
             self.zeta[t] = value[index]

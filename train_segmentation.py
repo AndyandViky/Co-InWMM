@@ -50,7 +50,7 @@ if __name__ == "__main__":
     parser.add_argument('-gamma', '--gamma', dest='gamma', help='second stick gamma', default=1)
     parser.add_argument('-mth', '--mix_threshold', dest='mix_threshold', help='mix_threshold', default=0.05)
     parser.add_argument('-m', '--max_iter', dest='max_iter', help='max iteration of variational inference', default=100)
-    parser.add_argument('-sc', '--scalar', dest='scalar', help='data scalar', default=4)
+    parser.add_argument('-sc', '--scalar', dest='scalar', help='data scalar', default=2)
     args = parser.parse_args()
 
     data = scio.loadmat('./datas/segmentation/{}1.mat'.format(args.data_name))

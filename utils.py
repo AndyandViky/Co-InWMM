@@ -77,7 +77,7 @@ def calculate_mix(a, b, K):
     return pi
 
 
-def d_hyp1f1(a, b, k):
+def d_hyp1f1(a, b, k, iteration=3000):
 
     result = hyp1f1(a + 1, b + 1, k) / hyp1f1(a, b, k)
     if np.any(np.isnan(result)):
@@ -100,7 +100,7 @@ def d_hyp1f1(a, b, k):
                 else:
                     stack.append(temp)
 
-                if iter > 3000:
+                if iter > iteration:
                     break
                 iter = iter + 1
             temp = 1
@@ -207,20 +207,8 @@ def compute_s_ave(data, mu):
     return s_ave, s_max
 
 
-def get_data(data_dir, data_name):
-    """
-    yeast, Sporulation
-    :param data_dir:
-    :param data_name:
-    :return: nor_data, data
-    """
-    datas = scio.loadmat('{}/{}.mat'.format(data_dir, data_name))
-    time_ser = datas['data']
-    data = 2 ** time_ser
-    nor_data = data / np.sum(data, 1, keepdims=True)
-    labels = datas['z'].reshape(-1) if 'z' in datas.keys() else None
-    data = data / np.linalg.norm(data, axis=1, keepdims=True)
+def scalar_data(data, scalar):
 
-    return nor_data, data, time_ser, labels
+    return data[::scalar, ::scalar, :].reshape((-1, data.shape[2]))
 
 

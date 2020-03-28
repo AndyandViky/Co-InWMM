@@ -3,9 +3,9 @@
 # @contact: andy_viky@163.com
 # @github: https://github.com/AndyandViky
 # @csdn: https://blog.csdn.net/AndyViky
-# @file: train.py
+# @file: train_synthetic.py
 # @time: 2020/1/13 15:17
-# @desc: train.py
+# @desc: train_synthetic.py
 try:
     import argparse
     import numpy as np
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     if int(args.load_params) == 1:
         args.T = T
         args.mix_threshold = mix_threshold
-        args.algorithm_category = 1
+        args.algorithm_category = 0
         args.max_iter = max_iter
 
     trainer = Trainer(args)
@@ -75,5 +75,5 @@ if __name__ == "__main__":
     pred = trainer.model.predict(data)
     category = np.unique(np.array(pred))
     print(category)
-    console_log(pred, labels=labels, model_name='===========hdp-vmf')
+    console_log(pred, labels=labels, model_name='===========dp-wmm')
 

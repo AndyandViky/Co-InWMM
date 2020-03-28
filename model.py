@@ -201,6 +201,7 @@ class CVIModel:
         self.T = args.T
         self.max_k = 700
         self.args = args
+        self.max_hy1f1_iter = args.max_hy1f1_iter
         self.N = 300
         self.D = 3
         self.prior = dict()
@@ -239,9 +240,9 @@ class CVIModel:
         self.xi = self.xi / np.linalg.norm(self.xi, axis=1)[:, np.newaxis]
         self.k = self.u / self.v
 
-        kmeans = KMeans(n_clusters=self.T).fit(data)
-        self.rho = repmat(caculate_pi(kmeans, self.N, self.T), self.N, 1)
-        # self.rho = np.ones((self.N, self.T)) * (1 / self.T)
+        # kmeans = KMeans(n_clusters=self.T, max_iter=100).fit(data)
+        # self.rho = repmat(caculate_pi(kmeans, self.N, self.T), self.N, 1)
+        self.rho = np.ones((self.N, self.T)) * (1 / self.T)
 
         self.update_zeta_xi(data, self.rho)
         self.update_u_v(self.rho)
@@ -250,9 +251,9 @@ class CVIModel:
 
         D = self.D
         E_k = digamma(self.u) - digamma(self.u + self.v)
-        kdk1 = d_hyp1f1(0.5, D / 2, self.zeta * self.k)
-        kdk2 = d_hyp1f1(1.5, (D + 2) / 2, self.zeta * self.k) * kdk1
-        kdk3 = d_hyp1f1(0.5, D / 2, self.k)
+        kdk1 = d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
+        kdk2 = d_hyp1f1(1.5, (D + 2) / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter) * kdk1
+        kdk3 = d_hyp1f1(0.5, D / 2, self.k, iteration=self.max_hy1f1_iter)
         temp = (1 / D * kdk1 + self.zeta * self.k * (
                 3 / ((D + 2) * D) * kdk2 - (1 / (D ** 2)) * kdk1 * kdk1)) * self.k * (
                        E_k + np.log(self.zeta) - np.log(self.prior['zeta'] * self.k))
@@ -300,9 +301,9 @@ class CVIModel:
         D = self.D
         zeta = self.prior['zeta']
         # compute u, v
-        self.u = self.prior['u'] + (D / 2) * (1 + np.sum(rho, 0)) + self.zeta * self.k / D * d_hyp1f1(0.5, D / 2, self.zeta * self.k)
-        self.v = self.prior['v'] + np.sum(rho, 0) * (D / (2 * self.k) + (1 / D) * d_hyp1f1(0.5, D / 2, self.k)) + \
-                 (D / (2 * self.k) + (zeta / D) * d_hyp1f1(0.5, D / 2, zeta * self.k))
+        self.u = self.prior['u'] + (D / 2) * (1 + np.sum(rho, 0)) + self.zeta * self.k / D * d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
+        self.v = self.prior['v'] + np.sum(rho, 0) * (D / (2 * self.k) + (1 / D) * d_hyp1f1(0.5, D / 2, self.k, iteration=self.max_hy1f1_iter)) + \
+                 (D / (2 * self.k) + (zeta / D) * d_hyp1f1(0.5, D / 2, zeta * self.k, iteration=self.max_hy1f1_iter))
 
     def update_zeta_xi(self, x, rho):
 

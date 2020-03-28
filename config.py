@@ -21,6 +21,12 @@ RESULT_DIR = os.path.join(REPO_DIR, 'result')
 # difference datasets config
 # T, mix_threshold, algorithm_category, max_iter, dim, max_hy1f1_iter
 DATA_PARAMS = {
-    'big_data': (7, 0.01, 0, 30, 3, 3000),
-    'nyu': (30, 0.01, 1, 50, 3, 5000),
+    'big_data': [
+        (7, 0.01, 0, 10, 3, 3000),
+        (7, 0.01, 1, 10, 3, 3000),
+    ],
+    'nyu': [
+        (30, 0.01, 0, 100, 3, -1),
+        (30, 0.01, 1, 100, 3, 5000),
+    ],
 }

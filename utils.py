@@ -97,11 +97,12 @@ def d_hyp1f1(a, b, k, iteration=3000):
                     temp = (a - b - math.floor(iter / 2)) / (b + iter - 1) / (b + iter) * k[i]
                 if abs(temp) < tol:
                     iter = iter - 1
+                    # print(iter)
                     break
                 else:
                     stack.append(temp)
 
-                if iter > iteration:
+                if iter > np.inf if iteration == -1 else iteration:
                     break
                 iter = iter + 1
             temp = 1
@@ -114,7 +115,7 @@ def d_hyp1f1(a, b, k, iteration=3000):
 
         warnings.filterwarnings('ignore')
         result = np.vstack((d for d in result)).reshape(-1)
-    return result
+    return np.abs(result)
 
 
 def log_normalize(v):

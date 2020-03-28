@@ -62,12 +62,11 @@ if __name__ == "__main__":
     print('========================dataset is {}========================'.format(args.data_name))
 
     T, mix_threshold, algorithm_category, max_iter, dim, max_hy1f1_iter = DATA_PARAMS[
-        args.data_name]
+        args.data_name][args.algorithm_category]
 
     if int(args.load_params) == 1:
         args.T = T
         args.mix_threshold = mix_threshold
-        args.algorithm_category = 1
         args.max_iter = max_iter
         args.max_hy1f1_iter = max_hy1f1_iter
 

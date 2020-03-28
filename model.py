@@ -223,9 +223,9 @@ class CVIModel:
         self.prior = {
             'mu': np.sum(data, 0) / np.linalg.norm(np.sum(data, 0)),
             'zeta': 0.02,
-            'u': 1,
-            'v': 0.01,
-            'gamma': 0.5,
+            'u': self.args.u,
+            'v': self.args.v,
+            'gamma': self.args.gamma,
         }
         mu = self.prior['mu'][np.newaxis, :]
         self.prior['zeta'] = np.max(np.linalg.eig(mu.T.dot(mu))[0])
@@ -264,9 +264,8 @@ class CVIModel:
         for t in range(self.T-1):
             E_not_i_eq_k[:, t] = np.sum(E_not_i[:, t + 1:], 1)
 
-        t = np.log(1 + E_not_i) + np.log(self.prior['gamma'] + E_not_i_eq_k) + np.log(1 + self.prior['gamma'] + E_not_i + E_not_i_eq_k)
-
-        rho += t
+        rho += np.log(1 + E_not_i) + np.log(self.prior['gamma'] + E_not_i_eq_k) + np.log(
+            1 + self.prior['gamma'] + E_not_i + E_not_i_eq_k)
         log_rho, log_n = log_normalize(rho)
         rho = np.exp(log_rho)
         return rho

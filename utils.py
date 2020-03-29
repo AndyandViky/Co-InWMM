@@ -13,6 +13,7 @@ import numpy as np
 import warnings
 import scipy.io as scio
 
+from scipy import sparse
 from scipy.optimize import linear_sum_assignment as linear_assignment
 from scipy.special import hyp1f1, gammaln
 from sklearn.metrics.cluster import normalized_mutual_info_score as NMI, \
@@ -55,10 +56,10 @@ def wmm_pdf_log(x, mu, k):
     return pdf
 
 
-def caculate_pi(model, N, T):
+def caculate_pi(label, N, T):
 
     resp = np.zeros((N, T))
-    resp[np.arange(N), model.labels_] = 1
+    resp[np.arange(N), label] = 1
     nk = resp.sum(axis=0) + 10 * np.finfo(resp.dtype).eps
     pi = (nk / N)[np.newaxis, :]
     return pi
@@ -77,7 +78,7 @@ def calculate_mix(a, b, K):
     return pi
 
 
-def d_hyp1f1(a, b, k, iteration=3000):
+def d_hyp1f1(a, b, k, iteration=-1):
 
     warnings.filterwarnings('ignore')
     result = hyp1f1(a + 1, b + 1, k) / hyp1f1(a, b, k)
@@ -102,7 +103,7 @@ def d_hyp1f1(a, b, k, iteration=3000):
                 else:
                     stack.append(temp)
 
-                if iter > np.inf if iteration == -1 else iteration:
+                if iter > (np.inf if iteration == -1 else iteration):
                     break
                 iter = iter + 1
             temp = 1
@@ -115,7 +116,7 @@ def d_hyp1f1(a, b, k, iteration=3000):
 
         warnings.filterwarnings('ignore')
         result = np.vstack((d for d in result)).reshape(-1)
-    return np.abs(result)
+    return result
 
 
 def log_normalize(v):
@@ -214,5 +215,79 @@ def compute_s_ave(data, mu):
 def scalar_data(data, scalar):
 
     return data[::scalar, ::scalar, :].reshape((-1, data.shape[2]))
+
+
+def randsample(n, k):
+
+    h = list()
+    while (len(h) < k):
+        h.append(np.random.randint(0, n-1))
+
+    return h
+
+
+def s_kmeans(n_components, x, reps=9, maxit=200):
+
+    (N, D) = x.shape
+    bestlabel = []
+    sumD = np.zeros((n_components))
+    bCon = False
+    maxit = maxit
+    reps = reps
+    for t in range(reps):
+        mu = x[randsample(N, n_components), :]
+        last = 0
+        label = np.array([1])
+        it = 0
+        while np.any(label != last) and it < maxit:
+            last = label
+            simMat = x.dot(mu.T)
+            val = np.max(simMat, 1)
+            label = np.argmax(simMat, 1)
+            ll = np.unique(label)
+            if len(ll) < n_components:
+                misscluster = [i for i in range(n_components)]
+                misscluster = np.delete(misscluster, ll)
+                missNum = len(misscluster)
+                idx = np.argsort(val)
+                label[idx[:missNum]] = misscluster
+
+            E = sparse.coo_matrix((np.ones(N), ([i for i in range(N)], label)),
+                                  shape=(N, n_components))
+            mu = E.dot(sparse.spdiags(1 / np.sum(E, 0), 0, n_components, n_components)).T.dot(x)
+            centernorm = np.sqrt(np.sum(mu ** 2, 1))[:, np.newaxis]
+            mu = mu / centernorm
+
+            it = it + 1
+
+        if it < maxit:
+            bCon = True
+
+        if len(bestlabel) == 0:
+
+            bestlabel = label
+            bestcenter = mu
+            if reps > 1:
+                if np.any(label != last):
+                    simMat = x.dot(mu.T)
+                D = 1 - simMat
+                for k in range(n_components):
+                    sumD[k] = np.sum(D[label == k, k], 0)
+
+                bestsumD = sumD
+                bestD = D
+        else:
+            if np.any(label != last):
+                simMat = x.dot(mu.T)
+            D = 1 - simMat
+            for k in range(n_components):
+                sumD[k] = np.sum(D[label == k, k], 0)
+
+            if np.sum(sumD) < np.sum(bestsumD):
+                bestlabel = label
+                bestcenter = mu
+                bestsumD = sumD
+                bestD = D
+    return bestlabel, bestcenter
 
 

@@ -16,7 +16,7 @@ try:
     from sklearn.cluster import KMeans
     izip = zip
 
-    from utils import cluster_acc, predict, log_normalize, caculate_pi, calculate_mix, d_hyp1f1
+    from utils import cluster_acc, predict, log_normalize, caculate_pi, calculate_mix, d_hyp1f1, s_kmeans
 except ImportError as e:
     print(e)
     raise ImportError
@@ -31,6 +31,7 @@ class VIModel:
 
         self.T = args.T
         self.max_k = 700
+        self.max_hy1f1_iter = args.max_hy1f1_iter
         self.args = args
         self.N = 300
         self.D = 3
@@ -59,12 +60,10 @@ class VIModel:
         self.prior = {
             'mu': np.sum(data, 0) / np.linalg.norm(np.sum(data, 0)),
             'zeta': 0.02,
-            'u': 1,
-            'v': 0.01,
-            'gamma': 1,
+            'u': self.args.u,
+            'v': self.args.v,
+            'gamma': self.args.gamma,
         }
-        mu = self.prior['mu'][np.newaxis, :]
-        self.prior['zeta'] = np.max(np.linalg.eig(mu.T.dot(mu))[0])
 
         self.u = np.ones(self.T) * self.prior['u']
         self.v = np.ones(self.T) * self.prior['v']
@@ -73,8 +72,8 @@ class VIModel:
         self.xi = self.xi / np.linalg.norm(self.xi, axis=1)[:, np.newaxis]
         self.k = self.u / self.v
 
-        kmeans = KMeans(n_clusters=self.T, max_iter=100).fit(data)
-        self.rho = repmat(caculate_pi(kmeans, self.N, self.T), self.N, 1)
+        kmeans = KMeans(n_clusters=self.T).fit(data)
+        self.rho = repmat(caculate_pi(kmeans.labels_, self.N, self.T), self.N, 1)
         # self.rho = np.ones((self.N, self.T)) * (1 / self.T)
         self.g = np.zeros(self.T)
         self.h = np.zeros(self.T)
@@ -92,9 +91,9 @@ class VIModel:
             E_log_1_pi[0] = 0
 
             E_k = digamma(self.u) - digamma(self.u + self.v)
-            kdk1 = d_hyp1f1(0.5, D / 2, self.zeta * self.k)
-            kdk2 = d_hyp1f1(1.5, (D + 2) / 2, self.zeta * self.k) * kdk1
-            kdk3 = d_hyp1f1(0.5, D / 2, self.k)
+            kdk1 = d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
+            kdk2 = d_hyp1f1(1.5, (D + 2) / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter) * kdk1
+            kdk3 = d_hyp1f1(0.5, D / 2, self.k, iteration=self.max_hy1f1_iter)
             temp = (1 / D * kdk1 + self.zeta * self.k * (
                         3 / ((D + 2) * D) * kdk2 - (1 / (D ** 2)) * kdk1 * kdk1)) * self.k * (
                                E_k + np.log(self.zeta) - np.log(self.prior['zeta'] * self.k))
@@ -144,9 +143,12 @@ class VIModel:
         D = self.D
         zeta = self.prior['zeta']
         # compute u, v
-        self.u = self.prior['u'] + (D / 2) * (1 + np.sum(rho, 0)) + self.zeta * self.k / D * d_hyp1f1(0.5, D / 2, self.zeta * self.k)
-        self.v = self.prior['v'] + np.sum(rho, 0) * (D / (2 * self.k) + (1 / D) * d_hyp1f1(0.5, D / 2, self.k)) + \
-                 (D / (2 * self.k) + (zeta / D) * d_hyp1f1(0.5, D / 2, zeta * self.k))
+        self.u = self.prior['u'] + (D / 2) * (1 + np.sum(rho, 0)) + self.zeta * self.k / D * d_hyp1f1(0.5, D / 2,
+                                                                                                      self.zeta * self.k,
+                                                                                                      iteration=self.max_hy1f1_iter)
+        self.v = self.prior['v'] + np.sum(rho, 0) * (
+                    D / (2 * self.k) + (1 / D) * d_hyp1f1(0.5, D / 2, self.k, iteration=self.max_hy1f1_iter)) + \
+                 (D / (2 * self.k) + (zeta / D) * d_hyp1f1(0.5, D / 2, zeta * self.k, iteration=self.max_hy1f1_iter))
 
     def update_zeta_xi(self, x, rho):
 
@@ -220,15 +222,16 @@ class CVIModel:
 
         (self.N, self.D) = data.shape
 
+        kmeans = KMeans(n_clusters=self.T).fit(data)
+        self.rho = repmat(caculate_pi(kmeans.labels_, self.N, self.T), self.N, 1)
+
         self.prior = {
             'mu': np.sum(data, 0) / np.linalg.norm(np.sum(data, 0)),
-            'zeta': 0.02,
+            'zeta':self.args.z,
             'u': self.args.u,
             'v': self.args.v,
             'gamma': self.args.gamma,
         }
-        mu = self.prior['mu'][np.newaxis, :]
-        self.prior['zeta'] = np.max(np.linalg.eig(mu.T.dot(mu))[0])
 
         self.u = np.ones(self.T) * self.prior['u']
         self.v = np.ones(self.T) * self.prior['v']
@@ -237,16 +240,13 @@ class CVIModel:
         self.xi = self.xi / np.linalg.norm(self.xi, axis=1)[:, np.newaxis]
         self.k = self.u / self.v
 
-        kmeans = KMeans(n_clusters=self.T, max_iter=100).fit(data)
-        self.rho = repmat(caculate_pi(kmeans, self.N, self.T), self.N, 1)
-        # self.rho = np.ones((self.N, self.T)) * (1 / self.T)
-
         self.update_zeta_xi(data, self.rho)
         self.update_u_v(self.rho)
 
     def compute_rho(self, x):
 
         D = self.D
+        gamma = self.prior['gamma']
         E_k = digamma(self.u) - digamma(self.u + self.v)
         kdk1 = d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
         kdk2 = d_hyp1f1(1.5, (D + 2) / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter) * kdk1
@@ -263,6 +263,16 @@ class CVIModel:
         E_not_i_eq_k = np.zeros((self.N, self.T))
         for t in range(self.T-1):
             E_not_i_eq_k[:, t] = np.sum(E_not_i[:, t + 1:], 1)
+
+        # var_not_i = np.sum(self.rho * (1 - self.rho), 0, keepdims=True) - self.rho * (1 - self.rho)
+        # var_not_i_eq_k = np.zeros((self.N, self.T))
+        # for t in range(self.T):
+        #     if t != 0:
+        #         var_not_i_eq_k[:, t] = np.sum(E_not_i[:, :t], 1)
+        # var_not_i_eq_k = var_not_i_eq_k * E_not_i_eq_k
+        # rho += (np.log(1 + E_not_i) - var_not_i / (2 * ((1 + E_not_i) ** 2))) + (
+        #             np.log(gamma + E_not_i_eq_k) - var_not_i_eq_k / (2 * ((gamma + E_not_i_eq_k) ** 2))) + np.log(
+        #     1 + gamma + E_not_i + E_not_i_eq_k)
 
         rho += np.log(1 + E_not_i) + np.log(self.prior['gamma'] + E_not_i_eq_k) + np.log(
             1 + self.prior['gamma'] + E_not_i + E_not_i_eq_k)
@@ -296,8 +306,11 @@ class CVIModel:
         D = self.D
         zeta = self.prior['zeta']
         # compute u, v
-        self.u = self.prior['u'] + (D / 2) * (1 + np.sum(rho, 0)) + self.zeta * self.k / D * d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
-        self.v = self.prior['v'] + np.sum(rho, 0) * (D / (2 * self.k) + (1 / D) * d_hyp1f1(0.5, D / 2, self.k, iteration=self.max_hy1f1_iter)) + \
+        self.u = self.prior['u'] + (D / 2) * (1 + np.sum(rho, 0)) + self.zeta * self.k / D * d_hyp1f1(0.5, D / 2,
+                                                                                                      self.zeta * self.k,
+                                                                                                      iteration=self.max_hy1f1_iter)
+        self.v = self.prior['v'] + np.sum(rho, 0) * (
+                    D / (2 * self.k) + (1 / D) * d_hyp1f1(0.5, D / 2, self.k, iteration=self.max_hy1f1_iter)) + \
                  (D / (2 * self.k) + (zeta / D) * d_hyp1f1(0.5, D / 2, zeta * self.k, iteration=self.max_hy1f1_iter))
 
     def update_zeta_xi(self, x, rho):

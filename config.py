@@ -19,14 +19,22 @@ DATASETS_DIR = os.path.join(REPO_DIR, 'datas')
 RESULT_DIR = os.path.join(REPO_DIR, 'result')
 
 # difference datasets config
-# T, mix_threshold, algorithm_category, max_iter, dim, max_hy1f1_iter
+# T, mix_threshold, algorithm_category, max_iter, dim, max_hy1f1_iter, gamma, z, u, v
 DATA_PARAMS = {
     'big_data': [
-        (7, 0.01, 0, 10, 3, 3000),
-        (7, 0.01, 1, 10, 3, 3000),
+        (7, 0.01, 0, 50, 3, 3000, 1, 1, 1, 0.01),
+        (7, 0.01, 1, 50, 3, 3000, 0.5, 1, 1, 0.01),
+    ],
+    'big_data3': [
+        (10, 0.01, 0, 50, 3, 3000, 1, 0.05, 1, 0.01),
+        (10, 0.01, 1, 50, 3, 3000, 1, 0.01, 1, 0.01),
+    ],
+    'big_data4': [
+        (12, 0.01, 0, 50, 3, 3000, 1, 0.05, 0.1, 0.01),
+        (12, 0.01, 1, 20, 3, 3000, 0.5, 0.01, 1, 0.01),
     ],
     'nyu': [
-        (30, 0.01, 0, 100, 3, -1),
-        (30, 0.01, 1, 100, 3, 5000),
+        (30, 0.01, 0, 100, 3, 3000),
+        (30, 0.01, 1, 100, 3, -1),
     ],
 }

@@ -267,10 +267,6 @@ class CVIModel:
         E_Nc_minus_n_cumsum_geq = np.fliplr(np.cumsum(np.fliplr(E_Nc_minus_n), axis=1))
         E_Nc_minus_n_cumsum = E_Nc_minus_n_cumsum_geq - E_Nc_minus_n
 
-        # E_greater_i = np.zeros((self.N, self.T))
-        # for t in range(self.T-1):
-        #     E_greater_i[:, t] = np.sum(E_Nc_minus_n[:, t + 1:], 1)
-
         # var_not_i = np.sum(self.rho * (1 - self.rho), 0, keepdims=True) - self.rho * (1 - self.rho)
         # var_not_i_eq_k = np.zeros((self.N, self.T))
         # for t in range(self.T):
@@ -279,11 +275,6 @@ class CVIModel:
         # var_not_i_eq_k = var_not_i_eq_k * E_greater_i
         # rho += (np.log(1 + E_Nc_minus_n) - var_not_i / (2 * ((1 + E_Nc_minus_n) ** 2))) + (
         #             np.log(gamma + E_greater_i) - var_not_i_eq_k / (2 * ((gamma + E_greater_i) ** 2))) + np.log(
-        #     1 + gamma + E_Nc_minus_n + E_greater_i)
-
-        # temp = np.log(gamma + E_greater_i)
-        # temp[:, self.T-1] = 0
-        # rho += np.log(1 + E_Nc_minus_n) + temp + np.log(
         #     1 + gamma + E_Nc_minus_n + E_greater_i)
 
         first_tem = np.log(1 + E_Nc_minus_n) - np.log(1 + gamma + E_Nc_minus_n_cumsum_geq)

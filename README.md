@@ -1,5 +1,5 @@
-# DP-WMM
-Variational Inference Hierarchical Dirichlet process Mixture Models of Watson Distributions
+# CDP-WMM
+Collapsed Variational Inference Dirichlet process Mixture Models of Watson Distributions
 ---
 
 ### File
@@ -19,7 +19,7 @@ scipy==1.1.0
 sklearn==0.21.3  
 
 ---
-### Run hdp-wmm
+### Run cdp-wmm
 __params:__  
 -name dataset name  
 -lp Load hyper parameter or not 

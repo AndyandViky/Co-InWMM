@@ -118,7 +118,6 @@ class VIModel:
             print(ite)
             if ite == self.args.max_iter - 1:
                 times = time.time() - begin
-                print('times: {}'.format(times))
                 self.k = self.u / self.v
                 self.k[self.k > self.max_k] = self.max_k
                 self.pi = calculate_mix(self.g, self.h, self.T)
@@ -127,6 +126,7 @@ class VIModel:
                     print('mu: {}'.format(self.xi))
                     print('k: {}'.format(self.k))
                     print('pi: {}'.format(self.pi))
+                    print('times: {}'.format(times))
 
     def calculate_new_com(self):
 
@@ -313,7 +313,6 @@ class CVIModel:
             print(ite)
             if ite == self.args.max_iter - 1:
                 times = time.time() - begin
-                print('times: {}'.format(times))
                 self.k = self.u / self.v
                 self.k[self.k > self.max_k] = self.max_k
                 if self.args.verbose:

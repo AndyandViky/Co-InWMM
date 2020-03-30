@@ -10,6 +10,7 @@
 """
 try:
     import numpy as np
+    import time
 
     from scipy.special import digamma, gammaln, hyp1f1, polygamma
     from numpy.matlib import repmat
@@ -84,6 +85,7 @@ class VIModel:
 
     def var_inf(self, x):
 
+        begin = time.time()
         D = self.D
         for ite in range(self.args.max_iter):
             # compute rho
@@ -115,6 +117,8 @@ class VIModel:
 
             print(ite)
             if ite == self.args.max_iter - 1:
+                times = time.time() - begin
+                print('times: {}'.format(times))
                 self.k = self.u / self.v
                 self.k[self.k > self.max_k] = self.max_k
                 self.pi = calculate_mix(self.g, self.h, self.T)
@@ -259,29 +263,42 @@ class CVIModel:
                            self.u / self.v - self.k) + self.k / D * kdk1 + temp * (
                            x.dot(self.xi.T) ** 2)
         # collapsed
-        E_not_i = np.sum(self.rho, 0, keepdims=True) - self.rho
-        E_not_i_eq_k = np.zeros((self.N, self.T))
-        for t in range(self.T-1):
-            E_not_i_eq_k[:, t] = np.sum(E_not_i[:, t + 1:], 1)
+        E_Nc_minus_n = np.sum(self.rho, 0, keepdims=True) - self.rho
+        E_Nc_minus_n_cumsum_geq = np.fliplr(np.cumsum(np.fliplr(E_Nc_minus_n), axis=1))
+        E_Nc_minus_n_cumsum = E_Nc_minus_n_cumsum_geq - E_Nc_minus_n
+
+        # E_greater_i = np.zeros((self.N, self.T))
+        # for t in range(self.T-1):
+        #     E_greater_i[:, t] = np.sum(E_Nc_minus_n[:, t + 1:], 1)
 
         # var_not_i = np.sum(self.rho * (1 - self.rho), 0, keepdims=True) - self.rho * (1 - self.rho)
         # var_not_i_eq_k = np.zeros((self.N, self.T))
         # for t in range(self.T):
         #     if t != 0:
-        #         var_not_i_eq_k[:, t] = np.sum(E_not_i[:, :t], 1)
-        # var_not_i_eq_k = var_not_i_eq_k * E_not_i_eq_k
-        # rho += (np.log(1 + E_not_i) - var_not_i / (2 * ((1 + E_not_i) ** 2))) + (
-        #             np.log(gamma + E_not_i_eq_k) - var_not_i_eq_k / (2 * ((gamma + E_not_i_eq_k) ** 2))) + np.log(
-        #     1 + gamma + E_not_i + E_not_i_eq_k)
+        #         var_not_i_eq_k[:, t] = np.sum(E_Nc_minus_n[:, :t], 1)
+        # var_not_i_eq_k = var_not_i_eq_k * E_greater_i
+        # rho += (np.log(1 + E_Nc_minus_n) - var_not_i / (2 * ((1 + E_Nc_minus_n) ** 2))) + (
+        #             np.log(gamma + E_greater_i) - var_not_i_eq_k / (2 * ((gamma + E_greater_i) ** 2))) + np.log(
+        #     1 + gamma + E_Nc_minus_n + E_greater_i)
 
-        rho += np.log(1 + E_not_i) + np.log(self.prior['gamma'] + E_not_i_eq_k) + np.log(
-            1 + self.prior['gamma'] + E_not_i + E_not_i_eq_k)
+        # temp = np.log(gamma + E_greater_i)
+        # temp[:, self.T-1] = 0
+        # rho += np.log(1 + E_Nc_minus_n) + temp + np.log(
+        #     1 + gamma + E_Nc_minus_n + E_greater_i)
+
+        first_tem = np.log(1 + E_Nc_minus_n) - np.log(1 + gamma + E_Nc_minus_n_cumsum_geq)
+        first_tem[:, self.T-1] = 0
+        dummy = np.log(gamma + E_Nc_minus_n_cumsum) - np.log(1 + gamma + E_Nc_minus_n_cumsum_geq)
+        second_term = np.cumsum(dummy, axis=1) - dummy
+        rho += (first_tem + second_term)
+
         log_rho, log_n = log_normalize(rho)
         rho = np.exp(log_rho)
         return rho
 
     def var_inf(self, x):
 
+        begin = time.time()
         for ite in range(self.args.max_iter):
             # compute rho
             self.rho = self.compute_rho(x)
@@ -295,11 +312,14 @@ class CVIModel:
 
             print(ite)
             if ite == self.args.max_iter - 1:
+                times = time.time() - begin
+                print('times: {}'.format(times))
                 self.k = self.u / self.v
                 self.k[self.k > self.max_k] = self.max_k
                 if self.args.verbose:
                     print('mu: {}'.format(self.xi))
                     print('k: {}'.format(self.k))
+                    print('times: {}'.format(times))
 
     def update_u_v(self, rho):
 

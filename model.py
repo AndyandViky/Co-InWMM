@@ -60,7 +60,7 @@ class VIModel:
 
         self.prior = {
             'mu': np.sum(data, 0) / np.linalg.norm(np.sum(data, 0)),
-            'zeta': 0.02,
+            'zeta': self.args.z,
             'u': self.args.u,
             'v': self.args.v,
             'gamma': self.args.gamma,

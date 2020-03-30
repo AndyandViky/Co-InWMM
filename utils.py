@@ -98,7 +98,6 @@ def d_hyp1f1(a, b, k, iteration=-1):
                     temp = (a - b - math.floor(iter / 2)) / (b + iter - 1) / (b + iter) * k[i]
                 if abs(temp) < tol:
                     iter = iter - 1
-                    # print(iter)
                     break
                 else:
                     stack.append(temp)
@@ -116,7 +115,7 @@ def d_hyp1f1(a, b, k, iteration=-1):
 
         warnings.filterwarnings('ignore')
         result = np.vstack((d for d in result)).reshape(-1)
-    return result
+    return np.abs(result)
 
 
 def log_normalize(v):
@@ -214,7 +213,8 @@ def compute_s_ave(data, mu):
 
 def scalar_data(data, scalar):
 
-    return data[::scalar, ::scalar, :].reshape((-1, data.shape[2]))
+    result = data[::scalar, ::scalar, :]
+    return result.reshape((-1, data.shape[2])), result.shape
 
 
 def randsample(n, k):

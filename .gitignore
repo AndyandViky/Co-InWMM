@@ -1,5 +1,5 @@
 __pycache__*
 .idea/
 .DS_Store
-datas/segmentation
+datas/segmentation/toolbox
 vmfmix

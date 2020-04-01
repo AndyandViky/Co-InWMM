@@ -45,8 +45,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='HIN-datas',
                                     description='Hierarchical Dirichlet process Mixture Models of datas Distributions')
     parser.add_argument('-c', '--algorithm_category', dest='algorithm_category', help='choose VIModel:0 or SVIModel:1',
-                        default=0)
-    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='nyu2')
+                        default=1)
+    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='nyu')
     parser.add_argument('-lp', '--load_params', dest='load_params', help='load_params', default=1)
     parser.add_argument('-verbose', '--verbose', dest='verbose', help='verbose', default=1)
     # hyper parameters
@@ -62,14 +62,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     data = scio.loadmat('./datas/segmentation/{}.mat'.format(args.data_name))
-    data = data['rgbd_data']
-    nor_data = data[0]['imgNormals'][0]
-    rgb_data = data[0]['rgbImg'][0]
-    dep_data = data[0]['depImg'][0]
+    # data = data['rgbd_data']
+    # nor_data = data[0]['imgNormals'][0]
+    # rgb_data = data[0]['rgbImg'][0]
+    # dep_data = data[0]['depImg'][0]
+    nor_data = data['imgNormals']
 
     train_data, size = scalar_data(nor_data, args.scalar)
-
-    # tsne(nor_data[np.random.randint(0, nor_data.shape[0], 3000)])
 
     print('begin training......')
     print('========================dataset is {}========================'.format(args.data_name))
@@ -82,12 +81,14 @@ if __name__ == "__main__":
     # print(category)
     # console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========kmeans')
     #
-    # pred = BayesianGaussianMixture(n_components=20, max_iter=300).fit_predict(train_data)
+    # pred = BayesianGaussianMixture(n_components=3, max_iter=300).fit_predict(train_data)
+    # plot_seg(train_data, pred, size)
     # category = np.unique(np.array(pred))
     # print(category)
     # console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========vbgmm')
 
-    # pred = VIDP(n_cluster=T, max_iter=400).fit_predict(train_data)
+    # pred = VIDP(n_cluster=T, max_iter=100).fit_predict(train_data)
+    # plot_seg(train_data, pred, size)
     # category = np.unique(np.array(pred))
     # print(category)
     # console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========hdp-vmf', newJ=len(category))
@@ -105,8 +106,8 @@ if __name__ == "__main__":
     trainer = Trainer(args)
     trainer.train(train_data)
     pred = trainer.model.predict(train_data)
-    plot_seg(train_data, pred, size, rgb_data, dep_data, nor_data)
+    plot_seg(train_data, pred, size, nor_data=nor_data)
     category = np.unique(np.array(pred))
     print(category)
-    console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========dp-wmm', newJ=len(category))
+    # console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========dp-wmm', newJ=len(category))
 

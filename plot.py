@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_seg(data, labels, size, rgb_data, dep_data, nor_data):
+def plot_seg(data, labels, size, rgb_data=None, dep_data=None, nor_data=None):
 
     plt.xticks([])
     plt.yticks([])
@@ -20,8 +20,8 @@ def plot_seg(data, labels, size, rgb_data, dep_data, nor_data):
     # plt.show()
     # plt.imshow(dep_data / 255, cmap='gray')
     # plt.show()
-    # plt.imshow(nor_data)
-    # plt.show()
+    plt.imshow(nor_data)
+    plt.show()
 
     colors = np.array([
         [255, 48, 48],
@@ -42,4 +42,3 @@ def plot_seg(data, labels, size, rgb_data, dep_data, nor_data):
 
     plt.imshow(data)
     plt.show()
-

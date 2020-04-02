@@ -8,6 +8,7 @@
 @Time: 2020-02-06 15:10
 @Desc: utils.py
 """
+import os
 import math
 import numpy as np
 import warnings
@@ -289,5 +290,14 @@ def s_kmeans(n_components, x, reps=9, maxit=200):
                 bestsumD = sumD
                 bestD = D
     return bestlabel, bestcenter
+
+
+def file_name(file_dir):
+
+    all_files = []
+    for root, dirs, files in os.walk(file_dir):
+        all_files.append(files)
+
+    return all_files
 
 

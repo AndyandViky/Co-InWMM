@@ -7,6 +7,7 @@
 # @time: 2020/1/13 15:17
 # @desc: train_synthetic.py
 try:
+    import os
     import argparse
     import numpy as np
 
@@ -16,8 +17,8 @@ try:
     from sklearn.mixture import BayesianGaussianMixture
     from vmfmix.model import VIDP, CVIDP
 
-    from config import DATA_PARAMS, DATASETS_DIR
-    from utils import console_log, scalar_data
+    from config import DATA_PARAMS, DATASETS_DIR, LOG_DIR, SEG_DIR
+    from utils import console_log, scalar_data, file_name
     from plot import plot_seg
 
 except ImportError as e:
@@ -61,17 +62,14 @@ if __name__ == "__main__":
     parser.add_argument('-sc', '--scalar', dest='scalar', help='data scalar', default=2)
     args = parser.parse_args()
 
-    data = scio.loadmat('./datas/segmentation/{}.mat'.format(args.data_name))
-    # data = data['rgbd_data']
-    # nor_data = data[0]['imgNormals'][0]
-    # rgb_data = data[0]['rgbImg'][0]
-    # dep_data = data[0]['depImg'][0]
-    nor_data = data['imgNormals']
-
-    train_data, size = scalar_data(nor_data, args.scalar)
-
     print('begin training......')
     print('========================dataset is {}========================'.format(args.data_name))
+
+    logger = open(os.path.join(LOG_DIR, "log.txt"), 'a')
+    logger.write(
+        'begin training: ========================dataset is {}========================\n'.format(args.data_name)
+    )
+    logger.close()
 
     T, mix_threshold, algorithm_category, max_iter, dim, max_hy1f1_iter, gamma, z, u, v = DATA_PARAMS[
         args.data_name][args.algorithm_category]
@@ -103,11 +101,23 @@ if __name__ == "__main__":
         args.u = u
         args.v = v
 
-    trainer = Trainer(args)
-    trainer.train(train_data)
-    pred = trainer.model.predict(train_data)
-    plot_seg(train_data, pred, size, nor_data=nor_data)
-    category = np.unique(np.array(pred))
-    print(category)
-    # console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========dp-wmm', newJ=len(category))
+    files = file_name(SEG_DIR)[0]
+    for index, name in enumerate(files):
+        data = scio.loadmat('{}/{}'.format(SEG_DIR, name))
+        nor_data = data['imgNormals']
+
+        train_data, size = scalar_data(nor_data, args.scalar)
+
+        trainer = Trainer(args)
+        trainer.train(train_data)
+        pred = trainer.model.predict(train_data)
+        category = np.unique(np.array(pred))
+        logger = open(os.path.join(LOG_DIR, "log.txt"), 'a')
+        logger.write(
+            'nyu{}: cluster: {}\n'.format(index+1, category)
+        )
+        logger.close()
+        plot_seg(train_data, pred, size, nor_data=nor_data, file_name='nyu{}'.format(index+1), save=True)
+        # print(category)
+        # console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========dp-wmm', newJ=len(category))
 

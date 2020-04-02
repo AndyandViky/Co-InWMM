@@ -15,6 +15,8 @@ import pcl
 import numpy as np
 import matplotlib.pyplot as plt
 
+from utils import file_name
+
 
 def get_normal(cloud, num):
 
@@ -42,29 +44,20 @@ def get_normal(cloud, num):
     return normls
 
 
-def file_name(file_dir):
-
-    all_files = []
-    for root, dirs, files in os.walk(file_dir):
-        all_files.append(files)
-
-    return all_files
-
-
 def process():
 
     files = file_name('./toolbox/depths')[0]
     for index, name in enumerate(files):
-        if index < 9:
-            continue
+        # if index < 258:
+        #     continue
         data = scio.loadmat('./toolbox/depths/{}'.format(name))['depImg'].reshape((-1, 3))
         cloud = pcl.PointCloud(data)
 
         normal = get_normal(cloud, data.shape[0])
 
         scio.savemat('./toolbox/normals/{}'.format(name), {'imgNormals': normal})
-        plt.imshow(normal)
-        plt.show()
+        # plt.imshow(normal)
+        # plt.show()
 
 
 if __name__ == '__main__':

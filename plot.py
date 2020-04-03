@@ -19,12 +19,15 @@ from config import RESULT_DIR, LOG_DIR
 
 def plot_seg(data, labels, size, rgb_data=None, dep_data=None, nor_data=None, file_name='', save=False):
 
-    # plt.imshow(rgb_data / 255)
-    # plt.show()
-    # plt.imshow(dep_data / 255, cmap='gray')
-    # plt.show()
-    # plt.imshow(nor_data)
-    # plt.show()
+    if rgb_data is not None:
+        plt.imshow(rgb_data / 255)
+        plt.show()
+    if dep_data is not None:
+        plt.imshow(dep_data / 255, cmap='gray')
+        plt.show()
+    if nor_data is not None:
+        plt.imshow(nor_data)
+        plt.show()
 
     plt.axis('off')
     colors = np.array([
@@ -44,16 +47,23 @@ def plot_seg(data, labels, size, rgb_data=None, dep_data=None, nor_data=None, fi
         data[labels == category[i]] = colors[i]
     data = data.reshape(size)
 
-    # plt.imshow(data, aspect='equal')
-    # plt.show()
-
     if save:
         plt.imsave('{}/{}.png'.format(RESULT_DIR, file_name), data, dpi=500)
+    else:
+        plt.imshow(data, aspect='equal')
+        plt.show()
+
+
+# import scipy.io as scio
+# data = scio.loadmat('./datas/segmentation/toolbox/nyu.mat')['images']
+# for i in range(data.shape[3]):
+#     plt.axis('off')
+#     plt.imsave('{}/rgb/nyu{}.png'.format(RESULT_DIR, i+1), data[:, :, :, i], dpi=500)
 
 
 def plot_number_cluster(save=False):
 
-    logger = open(os.path.join(LOG_DIR, "test.txt"))
+    logger = open(os.path.join(LOG_DIR, "log.txt"))
     count = 0
     search = '['
     categorys = list()
@@ -67,6 +77,8 @@ def plot_number_cluster(save=False):
             break
         index = line.find(search, 0)
         category = line[index+1:-2].replace(' ', '')
+        if len(category) == 2:
+            print(1)
         categorys.append(len(category))
     logger.close()
 
@@ -76,9 +88,9 @@ def plot_number_cluster(save=False):
 
     plt.tick_params(axis='both', which='major', labelsize=14)
     x_major_locator = MultipleLocator(1)
-    y_major_locator = MultipleLocator(1)
+    y_major_locator = MultipleLocator(100)
     ax = plt.gca()
-    ax.plot(ca_num, '-|', ms=10, alpha=1, mfc='blue', label='CDP-WMM')
+    ax.plot(ca_num, '-s', ms=6, alpha=1, mfc='blue', label='CDP-WMM')
     ax.xaxis.set_major_locator(x_major_locator)
     ax.yaxis.set_major_locator(y_major_locator)
     plt.xlim(-0.5, 10.5)
@@ -87,11 +99,26 @@ def plot_number_cluster(save=False):
     plt.ylabel('Number of images', fontsize=14)
 
     plt.legend()
-    plt.show()
 
     if save:
-        plt.savefig('{}/category_fig.png'.format(RESULT_DIR), dpi=200)
+        plt.savefig('{}/fig/category_fig.png'.format(RESULT_DIR), dpi=200)
+    else:
+        plt.show()
 
 
-plot_number_cluster()
+# plot_number_cluster(save=False)
+
+
+# 2: 33 42 66 75 83 145 162 164 168 177 184 192 197 217 448 513_ 558 593 657 765_ 797 1048 1202 1299 1307
+# 2_: 513_
+
+# 6: 22 90 94 106 114 227 228 241 321 403 810 859 1213 1225 1241 1243 1245_ 1334_ 1340 1345 1361 1426 1429 1449
+# 6: 1245_ 1334_
+
+# 3: 1 2 18 69 140 143 153 179 202 252 342 385 409 410 450 457 462 463 486 499 501 557 568 619 662 680 726 846 878
+# 916 928 941 963 983 1039 1047 1068 1094 1110 1119 1179 1185 1198 1199 1282 1314 1367 1420
+
+# 4: 74 76 180 211 281 464 500 508 612 729 1084 1118 1163 1168 1200 1201 1226 1264 1317 1318
+
+# 5: 1215
 

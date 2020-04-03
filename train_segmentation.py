@@ -10,6 +10,7 @@ try:
     import os
     import argparse
     import numpy as np
+    import matplotlib.pyplot as plt
 
     from model import VIModel, CVIModel
     from scipy import io as scio
@@ -65,11 +66,11 @@ if __name__ == "__main__":
     print('begin training......')
     print('========================dataset is {}========================'.format(args.data_name))
 
-    logger = open(os.path.join(LOG_DIR, "log.txt"), 'a')
-    logger.write(
-        'begin training: ========================dataset is {}========================\n'.format(args.data_name)
-    )
-    logger.close()
+    # logger = open(os.path.join(LOG_DIR, "log.txt"), 'a')
+    # logger.write(
+    #     'begin training: ========================dataset is {}========================\n'.format(args.data_name)
+    # )
+    # logger.close()
 
     T, mix_threshold, algorithm_category, max_iter, dim, max_hy1f1_iter, gamma, z, u, v = DATA_PARAMS[
         args.data_name][args.algorithm_category]
@@ -101,23 +102,34 @@ if __name__ == "__main__":
         args.u = u
         args.v = v
 
-    files = file_name(SEG_DIR)[0]
-    for index, name in enumerate(files):
-        data = scio.loadmat('{}/{}'.format(SEG_DIR, name))
-        nor_data = data['imgNormals']
+    # files = file_name(SEG_DIR)[0]
+    # for index, name in enumerate(files):
+    #     data = scio.loadmat('{}/{}'.format(SEG_DIR, name))
+    #     nor_data = data['imgNormals']
+    #
+    #     train_data, size = scalar_data(nor_data, args.scalar)
+    #
+    #     trainer = Trainer(args)
+    #     trainer.train(train_data)
+    #     pred = trainer.model.predict(train_data)
+    #     category = np.unique(np.array(pred))
+    #     logger = open(os.path.join(LOG_DIR, "log.txt"), 'a')
+    #     logger.write(
+    #         'nyu{}: cluster: {}\n'.format(index+1, category)
+    #     )
+    #     logger.close()
+    #     plot_seg(train_data, pred, size, nor_data=nor_data, file_name='nyu{}'.format(index+1), save=True)
+    #     print(category)
+    #     console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========dp-wmm', newJ=len(category))
+    data = scio.loadmat('{}/nyu1449.mat'.format(SEG_DIR))
+    nor_data = data['imgNormals']
 
-        train_data, size = scalar_data(nor_data, args.scalar)
+    train_data, size = scalar_data(nor_data, args.scalar)
 
-        trainer = Trainer(args)
-        trainer.train(train_data)
-        pred = trainer.model.predict(train_data)
-        category = np.unique(np.array(pred))
-        logger = open(os.path.join(LOG_DIR, "log.txt"), 'a')
-        logger.write(
-            'nyu{}: cluster: {}\n'.format(index+1, category)
-        )
-        logger.close()
-        plot_seg(train_data, pred, size, nor_data=nor_data, file_name='nyu{}'.format(index+1), save=True)
-        # print(category)
-        # console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========dp-wmm', newJ=len(category))
+    trainer = Trainer(args)
+    trainer.train(train_data)
+    pred = trainer.model.predict(train_data)
+    category = np.unique(np.array(pred))
+    print(category)
+    plot_seg(train_data, pred, size, nor_data=nor_data, file_name='nyu1449', save=False)
 

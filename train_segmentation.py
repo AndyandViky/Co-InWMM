@@ -15,10 +15,10 @@ try:
     from model import VIModel, CVIModel
     from scipy import io as scio
     from sklearn.cluster import KMeans
-    from sklearn.mixture import BayesianGaussianMixture
+    from sklearn.mixture import BayesianGaussianMixture, GaussianMixture
     from vmfmix.model import VIDP, CVIDP
 
-    from config import DATA_PARAMS, DATASETS_DIR, LOG_DIR, SEG_DIR
+    from config import DATA_PARAMS, DATASETS_DIR, LOG_DIR, SEG_DIR, RESULT_DIR
     from utils import console_log, scalar_data, file_name
     from plot import plot_seg
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='HIN-datas',
                                     description='Hierarchical Dirichlet process Mixture Models of datas Distributions')
     parser.add_argument('-c', '--algorithm_category', dest='algorithm_category', help='choose VIModel:0 or SVIModel:1',
-                        default=1)
+                        default=0)
     parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='nyu')
     parser.add_argument('-lp', '--load_params', dest='load_params', help='load_params', default=1)
     parser.add_argument('-verbose', '--verbose', dest='verbose', help='verbose', default=1)
@@ -79,18 +79,6 @@ if __name__ == "__main__":
     # category = np.unique(np.array(pred))
     # print(category)
     # console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========kmeans')
-    #
-    # pred = BayesianGaussianMixture(n_components=3, max_iter=300).fit_predict(train_data)
-    # plot_seg(train_data, pred, size)
-    # category = np.unique(np.array(pred))
-    # print(category)
-    # console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========vbgmm')
-
-    # pred = VIDP(n_cluster=T, max_iter=100).fit_predict(train_data)
-    # plot_seg(train_data, pred, size)
-    # category = np.unique(np.array(pred))
-    # print(category)
-    # console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========hdp-vmf', newJ=len(category))
 
     if int(args.load_params) == 1:
         args.T = T
@@ -121,15 +109,27 @@ if __name__ == "__main__":
     #     plot_seg(train_data, pred, size, nor_data=nor_data, file_name='nyu{}'.format(index+1), save=True)
     #     print(category)
     #     console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========dp-wmm', newJ=len(category))
-    data = scio.loadmat('{}/nyu1449.mat'.format(SEG_DIR))
+    data = scio.loadmat('{}/nyu1215.mat'.format(SEG_DIR))
     nor_data = data['imgNormals']
+
+    # data = scio.loadmat('./datas/segmentation/nyu1.mat')
+    # nor_data = data['rgbd_data'][0]['imgNormals'][0]
 
     train_data, size = scalar_data(nor_data, args.scalar)
 
-    trainer = Trainer(args)
-    trainer.train(train_data)
-    pred = trainer.model.predict(train_data)
+    pred = VIDP(n_cluster=5, max_iter=100).fit_predict(train_data)
     category = np.unique(np.array(pred))
     print(category)
-    plot_seg(train_data, pred, size, nor_data=nor_data, file_name='nyu1449', save=False)
+    plot_seg(train_data, pred, size, nor_data=nor_data, root='{}/wmm'.format(RESULT_DIR), file_name='nyu1215', save=True)
+
+    # trainer = Trainer(args)
+    # trainer.train(train_data)
+    # pred = trainer.model.predict(train_data)
+    # category = np.unique(np.array(pred))
+    # print(category)
+    # if algorithm_category == 1:
+    #     RESULT_DIR = os.path.join(RESULT_DIR, 'cdp-wmm')
+    # elif algorithm_category == 0:
+    #     RESULT_DIR = os.path.join(RESULT_DIR, 'dp-wmm')
+    # plot_seg(train_data, pred, size, nor_data=nor_data, root=RESULT_DIR, file_name='nyu0513', save=True)
 

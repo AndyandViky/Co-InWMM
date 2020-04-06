@@ -43,7 +43,7 @@ if __name__ == "__main__":
                                     description='Hierarchical Dirichlet process Mixture Models of datas Distributions')
     parser.add_argument('-c', '--algorithm_category', dest='algorithm_category', help='choose VIModel:0 or SVIModel:1',
                         default=1)
-    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='big_data3')
+    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='syn_data2')
     parser.add_argument('-lp', '--load_params', dest='load_params', help='load_params', default=1)
     parser.add_argument('-verbose', '--verbose', dest='verbose', help='verbose', default=1)
     # hyper parameters
@@ -61,16 +61,16 @@ if __name__ == "__main__":
     labels = data['z'].reshape(-1).astype(np.int)
     data = data['data']
 
-    # labels = np.empty(6000)
+    # labels = np.empty(4000)
     # labels[:1000] = 1
     # labels[1000:2000] = 2
     # labels[2000:3000] = 3
     # labels[3000:4000] = 4
-    # labels[4000:5000] = 5
-    # labels[5000:6000] = 6
+    # # # labels[4000:5000] = 5
+    # # # labels[5000:6000] = 6
     # labels = labels.astype(np.int)
-    # data1 = scio.loadmat('./datas/Data5.mat')['Data']
-    # scio.savemat('./datas/big_data4.mat', {'data': data1, 'z': labels})
+    # data1 = scio.loadmat('./datas/Data4.mat')['Data']
+    # scio.savemat('./datas/syn_data2.mat', {'data': data1, 'z': labels})
     print('begin training......')
     print('========================dataset is {}========================'.format(args.data_name))
 

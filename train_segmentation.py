@@ -47,7 +47,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='HIN-datas',
                                     description='Hierarchical Dirichlet process Mixture Models of datas Distributions')
     parser.add_argument('-c', '--algorithm_category', dest='algorithm_category', help='choose VIModel:0 or SVIModel:1',
-                        default=0)
+                        default=1)
     parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='nyu')
     parser.add_argument('-lp', '--load_params', dest='load_params', help='load_params', default=1)
     parser.add_argument('-verbose', '--verbose', dest='verbose', help='verbose', default=1)
@@ -109,6 +109,7 @@ if __name__ == "__main__":
     #     plot_seg(train_data, pred, size, nor_data=nor_data, file_name='nyu{}'.format(index+1), save=True)
     #     print(category)
     #     console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========dp-wmm', newJ=len(category))
+
     data = scio.loadmat('{}/nyu1118.mat'.format(SEG_DIR))
     nor_data = data['imgNormals']
 
@@ -119,11 +120,11 @@ if __name__ == "__main__":
     labels, _ = scalar_data(labels, args.scalar)
     train_data, size = scalar_data(nor_data, args.scalar)
 
-    pred = VIDP(n_cluster=4, max_iter=100).fit_predict(train_data)
-    category = np.unique(np.array(pred))
-    print(category)
-    # plot_seg(train_data, pred, size, nor_data=nor_data, root='{}/wmm'.format(RESULT_DIR), file_name='nyu0143', save=False)
-    console_log(pred, labels=labels.reshape(-1))
+    # pred = VIDP(n_cluster=4, max_iter=100).fit_predict(train_data)
+    # category = np.unique(np.array(pred))
+    # print(category)
+    # # plot_seg(train_data, pred, size, nor_data=nor_data, root='{}/wmm'.format(RESULT_DIR), file_name='nyu0143', save=False)
+    # console_log(pred, labels=labels.reshape(-1))
 
     trainer = Trainer(args)
     trainer.train(train_data)

@@ -11,6 +11,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.io as scio
 
 from matplotlib.pyplot import MultipleLocator
 
@@ -106,7 +107,84 @@ def plot_number_cluster(save=False):
         plt.show()
 
 
+def plot_3d(dataset='syn_data1', save=False):
+
+    fig = plt.figure(figsize=(7.4, 5.8))
+    ax = fig.add_subplot(111, projection='3d')
+    gca = fig.gca(projection='3d')
+
+    # Make data
+    u = np.linspace(0, 2 * np.pi, 50)
+    v = np.linspace(0, np.pi, 50)
+    x = 1 * np.outer(np.cos(u), np.sin(v))
+    y = 1 * np.outer(np.sin(u), np.sin(v))
+    z = 1 * np.outer(np.ones(np.size(u)), np.cos(v))
+
+    # Plot the surface
+    ax.plot_surface(x, y, z, color='#ffffff', alpha=0, edgecolors='#999999', linewidth=0.1)
+
+    data = scio.loadmat('./datas/{}.mat'.format(dataset))
+    labels = data['z'].reshape(-1)
+
+    if dataset == 'syn_data1':
+        ax.view_init(azim=-50)
+        # ax.set_title('Group 2', fontsize=20)
+        data = data['data'].reshape((-1, 3))
+        first = data[labels == 1]
+        av_f = [1, 0, 0]
+        second = data[labels == 2]
+        av_s = [0, 1, 0]
+        third = data[labels == 3]
+        av_t = [0, 0, 1]
+
+        ax.scatter3D(first[:, 2], first[:, 1], first[:, 0], c=first[:, 0], s=10, cmap='Blues', label='cluster 1', marker='*')
+        gca.plot([0, av_f[0]], [0, av_f[1]], [0, av_f[2]], c='b', linewidth=0.5)
+        gca.plot([0, -av_f[0]], [0, av_f[1]], [0, av_f[2]], c='b', linewidth=0.5)
+        ax.scatter3D(second[:, 2], second[:, 1], second[:, 0], c=second[:, 0], s=10, cmap='Oranges', label='cluster 2', marker='o')
+        gca.plot([0, av_s[0]], [0, av_s[1]], [0, av_s[2]], c='orange', linewidth=0.5)
+        gca.plot([0, av_s[0]], [0, -av_s[1]], [0, av_s[2]], c='orange', linewidth=0.5)
+        ax.scatter3D(third[:, 2], third[:, 1], third[:, 0], c=third[:, 1], s=10, cmap='Reds', label='cluster 3', marker='+')
+        gca.plot([0, av_t[0]], [0, av_t[1]], [0, av_t[2]], c='r', linewidth=0.5)
+        gca.plot([0, av_t[0]], [0, av_t[1]], [0, -av_t[2]], c='r', linewidth=0.5)
+        ax.legend(bbox_to_anchor=(0.14, 1), markerscale=1.5)
+
+        # ax.legend(bbox_to_anchor=(0.81, 1.03), markerscale=1.3, fontsize=13)
+    # big_data
+    else:
+        ax.view_init(azim=-50)
+        # ax.set_title('Group 1', fontsize=20)
+        data = scio.loadmat('./datas/{}.mat'.format(dataset))['data']
+        first = data[labels == 1][:300]
+        av_f = [1, 0, 0]
+        second = data[labels == 2][:300]
+        av_s = [0, 1, 0]
+        third = data[labels == 3][:300]
+        av_t = [0, 0, 1]
+        four = data[labels == 4][:300]
+        av_fo = [0.25, -0.25, 0.25]
+
+        ax.scatter3D(first[:, 0], first[:, 1], first[:, 2], c=first[:, 1], s=10, cmap='Blues', label='cluster 1', marker='v')
+        gca.plot([0, av_f[0]], [0, av_f[1]], [0, av_f[2]], c='b', linewidth=0.5)
+        gca.plot([0, -av_f[0]], [0, av_f[1]], [0, av_f[2]], c='b', linewidth=0.5)
+        ax.scatter3D(second[:, 0], second[:, 1], second[:, 2], c=second[:, 0], s=10, cmap='Reds', label='cluster 2', marker='x')
+        gca.plot([0, av_s[0]], [0, av_s[1]], [0, av_s[2]], c='r', linewidth=0.5)
+        gca.plot([0, av_s[0]], [0, -av_s[1]], [0, av_s[2]], c='r', linewidth=0.5)
+        ax.scatter3D(third[:, 0], third[:, 1], third[:, 2], c=third[:, 2], s=10, cmap='Oranges', label='cluster 3', marker='*')
+        gca.plot([0, av_t[0]], [0, av_t[1]], [0, av_t[2]], c='r', linewidth=0.5)
+        gca.plot([0, av_t[0]], [0, av_t[1]], [0, -av_t[2]], c='r', linewidth=0.5)
+        ax.scatter3D(four[:, 0], four[:, 1], four[:, 2], c=four[:, 1], s=10, cmap='Greens', label='cluster 4', marker='o')
+        gca.plot([0, av_fo[0]], [0, av_fo[1]], [0, av_fo[2]], c='r', linewidth=0.5)
+        gca.plot([0, -av_fo[0]], [0, -av_fo[1]], [0, -av_fo[2]], c='r', linewidth=0.5)
+        ax.legend(bbox_to_anchor=(0.14, 0.95), markerscale=1.5)
+
+        # ax.legend(bbox_to_anchor=(0.81 / 0.83, 1.03), markerscale=1.3, fontsize=13)
+
+    plt.show()
+    if save:
+        fig.savefig('./result/{}_fig.jpg'.format(dataset), dpi=200)
+
 # plot_number_cluster(save=False)
+# plot_3d('syn_data1', save=True)
 
 
 # 2: 33 42 66 75 83 145 162 164 168 177 184 192 197 217 448 513_ 558 593 657 765_ 797 1048 1202 1299 1307

@@ -17,7 +17,7 @@ import scipy.io as scio
 from scipy import sparse
 from scipy.optimize import linear_sum_assignment as linear_assignment
 from scipy.special import hyp1f1, gammaln
-from sklearn.metrics.cluster import normalized_mutual_info_score as NMI, \
+from sklearn.metrics.cluster import mutual_info_score as MI, \
         adjusted_mutual_info_score as AMI, adjusted_rand_score as AR, silhouette_score as SI, calinski_harabasz_score as CH
 
 
@@ -145,9 +145,10 @@ def console_log(pred, data=None, labels=None, model_name='cluster', each_data=No
     if data is not None:
         measure_dict['si'] = SI(data, pred)
         measure_dict['ch'] = CH(data, pred)
+        # measure_dict['vs'] = davies_bouldin_score(data, pred)
     if labels is not None:
         measure_dict['acc'] = cluster_acc(pred, labels)[0]
-        measure_dict['nmi'] = NMI(labels, pred)
+        measure_dict['mi'] = MI(labels, pred)
         measure_dict['ar'] = AR(labels, pred)
         measure_dict['ami'] = AMI(labels, pred)
     if each_data is not None and mu is not None:
@@ -299,5 +300,4 @@ def file_name(file_dir):
         all_files.append(files)
 
     return all_files
-
 

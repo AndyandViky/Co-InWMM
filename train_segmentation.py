@@ -109,27 +109,32 @@ if __name__ == "__main__":
     #     plot_seg(train_data, pred, size, nor_data=nor_data, file_name='nyu{}'.format(index+1), save=True)
     #     print(category)
     #     console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========dp-wmm', newJ=len(category))
-    data = scio.loadmat('{}/nyu1215.mat'.format(SEG_DIR))
+    data = scio.loadmat('{}/nyu1118.mat'.format(SEG_DIR))
     nor_data = data['imgNormals']
 
     # data = scio.loadmat('./datas/segmentation/nyu1.mat')
     # nor_data = data['rgbd_data'][0]['imgNormals'][0]
 
+    labels = scio.loadmat('./datas/segmentation/toolbox/nyu_labels.mat')['labels'][:, :, 1117:1118]
+    labels, _ = scalar_data(labels, args.scalar)
     train_data, size = scalar_data(nor_data, args.scalar)
 
-    pred = VIDP(n_cluster=5, max_iter=100).fit_predict(train_data)
+    pred = VIDP(n_cluster=4, max_iter=100).fit_predict(train_data)
     category = np.unique(np.array(pred))
     print(category)
-    plot_seg(train_data, pred, size, nor_data=nor_data, root='{}/wmm'.format(RESULT_DIR), file_name='nyu1215', save=True)
+    # plot_seg(train_data, pred, size, nor_data=nor_data, root='{}/wmm'.format(RESULT_DIR), file_name='nyu0143', save=False)
+    console_log(pred, labels=labels.reshape(-1))
 
-    # trainer = Trainer(args)
-    # trainer.train(train_data)
-    # pred = trainer.model.predict(train_data)
-    # category = np.unique(np.array(pred))
-    # print(category)
-    # if algorithm_category == 1:
-    #     RESULT_DIR = os.path.join(RESULT_DIR, 'cdp-wmm')
-    # elif algorithm_category == 0:
-    #     RESULT_DIR = os.path.join(RESULT_DIR, 'dp-wmm')
-    # plot_seg(train_data, pred, size, nor_data=nor_data, root=RESULT_DIR, file_name='nyu0513', save=True)
+    trainer = Trainer(args)
+    trainer.train(train_data)
+    pred = trainer.model.predict(train_data)
+    category = np.unique(np.array(pred))
+    print(category)
+    if algorithm_category == 1:
+        RESULT_DIR = os.path.join(RESULT_DIR, 'cdp-wmm')
+    elif algorithm_category == 0:
+        RESULT_DIR = os.path.join(RESULT_DIR, 'dp-wmm')
+    plot_seg(train_data, pred, size, root=RESULT_DIR, file_name='nyu1118', save=False)
+    console_log(pred, labels=labels.reshape(-1))
 
+# 1118 963

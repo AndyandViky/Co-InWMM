@@ -4,4 +4,10 @@ __pycache__*
 datas/segmentation/toolbox
 vmfmix
 log/
-result/
+result/cdp-wmm
+result/dp-wmm
+result/depths
+result/normals
+result/rgb
+result/wmm
+result/ground_true

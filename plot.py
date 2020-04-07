@@ -8,11 +8,14 @@
 @time: 2019/6/9 下午8:20
 @desc: plot
 """
+import io
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io as scio
 
+from PIL import Image
+from math import *
 from matplotlib.pyplot import MultipleLocator
 
 from config import RESULT_DIR, LOG_DIR
@@ -34,9 +37,9 @@ def plot_seg(data, labels, size, rgb_data=None, dep_data=None, nor_data=None, ro
     colors = np.array([
         [255, 48, 48],
         [30, 144, 255],
-        [255, 165, 0],
-        [205, 201, 201],
         [50, 205, 50],
+        [205, 201, 201],
+        [255, 165, 0],
         [0, 191, 255],
         [139, 117, 0],
         [139, 126, 102],
@@ -78,20 +81,19 @@ def plot_number_cluster(save=False):
             break
         index = line.find(search, 0)
         category = line[index+1:-2].replace(' ', '')
-        if len(category) == 2:
-            print(1)
         categorys.append(len(category))
     logger.close()
 
     categorys = np.array(categorys)
 
     ca_num = np.array([categorys[categorys == i].shape[0] for i in range(0, 11)])
-
+    w_num = np.array([0, 0, 160, 460, 560, 200, 50, 10, 0, 0, 0])
     plt.tick_params(axis='both', which='major', labelsize=14)
     x_major_locator = MultipleLocator(1)
     y_major_locator = MultipleLocator(100)
     ax = plt.gca()
     ax.plot(ca_num, '-s', ms=6, alpha=1, mfc='blue', label='CDP-WMM')
+    ax.plot(w_num, '-d', c='black', ms=6, alpha=1, mfc='black', label='L-WMM')
     ax.xaxis.set_major_locator(x_major_locator)
     ax.yaxis.set_major_locator(y_major_locator)
     plt.xlim(-0.5, 10.5)
@@ -102,7 +104,7 @@ def plot_number_cluster(save=False):
     plt.legend()
 
     if save:
-        plt.savefig('{}/fig/category_fig.png'.format(RESULT_DIR), dpi=200)
+        plt.savefig('{}/fig/category_fig.eps'.format(RESULT_DIR), dpi=200, format='eps')
     else:
         plt.show()
 
@@ -183,8 +185,51 @@ def plot_3d(dataset='syn_data1', save=False):
     if save:
         fig.savefig('./result/{}_fig.jpg'.format(dataset), dpi=200)
 
-# plot_number_cluster(save=False)
+
+def get_ellipse(e_x, e_y, a, b, e_angle):
+    """
+    Drawing ellipse
+    :param e_x: x-coordinate
+    :param e_y: y-coordinate
+    :param a: length of semimajor axis
+    :param b: length of semiminor axis
+    :param e_angle: angle between major axis and X axis of ellipse
+    :return: None
+    """
+    angles_circle = np.arange(0, 2 * np.pi, 0.01)
+    x = []
+    y = []
+    for angles in angles_circle:
+        or_x = a * cos(angles)
+        or_y = b * sin(angles)
+        length_or = sqrt(or_x * or_x + or_y * or_y)
+        or_theta = atan2(or_y, or_x)
+        new_theta = or_theta + e_angle/180*np.pi
+        new_x = e_x + length_or * cos(new_theta)
+        new_y = e_y + length_or * sin(new_theta)
+        x.append(new_x)
+        y.append(new_y)
+    return x, y
+
+
+def plot_eplipse_result(root='./result/cdp-wmm', filename='nyu2_cdp.png'):
+
+    plt.axis('off')
+    img = plt.imread('{}/{}'.format(root, filename))
+    plt.imshow(img)
+    x, y = get_ellipse(47, 149, 35, 8, 0)
+    plt.plot(x, y, c='w')
+    x, y = get_ellipse(120, 150, 35, 8, 5)
+    plt.plot(x, y, c='w')
+    x, y = get_ellipse(240, 168, 35, 10, 5)
+    plt.plot(x, y, c='w')
+
+    plt.savefig('{}/mark_{}'.format(root, filename), bbox_inches='tight', dpi=200)
+    # plt.show()
+
+# plot_number_cluster(save=True)
 # plot_3d('syn_data1', save=True)
+# plot_eplipse_result()
 
 
 # 2: 33 42 66 75 83 145 162 164 168 177 184 192 197 217 448 513_ 558 593 657 765_ 797 1048 1202 1299 1307
@@ -200,3 +245,11 @@ def plot_3d(dataset='syn_data1', save=False):
 
 # 5: 1215
 
+'''
+1. 换个颜色 #
+2. 搞一张对比图
+3. 作出wmm类图 #
+4. 图片都存成eps
+5. 做整体数据速度表 #
+6. 计算模拟数据lb和时间
+'''

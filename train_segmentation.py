@@ -110,20 +110,20 @@ if __name__ == "__main__":
     #     print(category)
     #     console_log(pred[:2000], data=train_data[:2000], labels=None, model_name='===========dp-wmm', newJ=len(category))
 
-    data = scio.loadmat('{}/nyu1118.mat'.format(SEG_DIR))
+    data = scio.loadmat('{}/nyu1200.mat'.format(SEG_DIR))
     nor_data = data['imgNormals']
 
     # data = scio.loadmat('./datas/segmentation/nyu1.mat')
     # nor_data = data['rgbd_data'][0]['imgNormals'][0]
 
-    labels = scio.loadmat('./datas/segmentation/toolbox/nyu_labels.mat')['labels'][:, :, 1117:1118]
-    labels, _ = scalar_data(labels, args.scalar)
+    # labels = scio.loadmat('./datas/segmentation/toolbox/nyu_labels.mat')['labels'][:, :, 1117:1118]
+    # labels, _ = scalar_data(labels, args.scalar)
     train_data, size = scalar_data(nor_data, args.scalar)
 
     # pred = VIDP(n_cluster=4, max_iter=100).fit_predict(train_data)
     # category = np.unique(np.array(pred))
     # print(category)
-    # # plot_seg(train_data, pred, size, nor_data=nor_data, root='{}/wmm'.format(RESULT_DIR), file_name='nyu0143', save=False)
+    # plot_seg(train_data, pred, size, root='{}/wmm'.format(RESULT_DIR), file_name='nyu1200_wmm', save=True)
     # console_log(pred, labels=labels.reshape(-1))
 
     trainer = Trainer(args)
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         RESULT_DIR = os.path.join(RESULT_DIR, 'cdp-wmm')
     elif algorithm_category == 0:
         RESULT_DIR = os.path.join(RESULT_DIR, 'dp-wmm')
-    plot_seg(train_data, pred, size, root=RESULT_DIR, file_name='nyu1118', save=False)
-    console_log(pred, labels=labels.reshape(-1))
+    plot_seg(train_data, pred, size, root=RESULT_DIR, file_name='nyu1200_cdp', save=True)
+    # console_log(pred, labels=labels.reshape(-1))
 
 # 1118 963

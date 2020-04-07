@@ -14,11 +14,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io as scio
 
-from PIL import Image
 from math import *
 from matplotlib.pyplot import MultipleLocator
 
 from config import RESULT_DIR, LOG_DIR
+from utils import file_name
 
 
 def plot_seg(data, labels, size, rgb_data=None, dep_data=None, nor_data=None, root='', file_name='', save=False):
@@ -227,9 +227,20 @@ def plot_eplipse_result(root='./result/cdp-wmm', filename='nyu2_cdp.png'):
     plt.savefig('{}/mark_{}'.format(root, filename), bbox_inches='tight', dpi=200)
     # plt.show()
 
+
+def change_png2eps(root='./result/figures'):
+
+    files = file_name(root)[0]
+    for index, name in enumerate(files):
+        img = plt.imread('{}/{}'.format(root, name))
+        f_index = name.find('.', 0)
+        f_name = name[:f_index]
+        plt.imsave('{}/test_{}.eps'.format(root, f_name), img, format='eps', dpi=500)
+
 # plot_number_cluster(save=True)
 # plot_3d('syn_data1', save=True)
 # plot_eplipse_result()
+# change_png2eps()
 
 
 # 2: 33 42 66 75 83 145 162 164 168 177 184 192 197 217 448 513_ 558 593 657 765_ 797 1048 1202 1299 1307
@@ -247,9 +258,8 @@ def plot_eplipse_result(root='./result/cdp-wmm', filename='nyu2_cdp.png'):
 
 '''
 1. 换个颜色 #
-2. 搞一张对比图
+2. 搞一张对比图 #
 3. 作出wmm类图 #
-4. 图片都存成eps
 5. 做整体数据速度表 #
 6. 计算模拟数据lb和时间
 '''

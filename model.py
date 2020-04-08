@@ -83,26 +83,31 @@ class VIModel:
         self.update_u_v(self.rho)
         self.update_g_h(self.rho)
 
+    def caclulate_log_lik_x(self, x):
+
+        D = self.D
+        E_k = digamma(self.u) - digamma(self.u + self.v)
+        kdk1 = d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
+        kdk2 = d_hyp1f1(1.5, (D + 2) / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter) * kdk1
+        kdk3 = d_hyp1f1(0.5, D / 2, self.k, iteration=self.max_hy1f1_iter)
+        temp = (1 / D * kdk1 + self.zeta * self.k * (
+                3 / ((D + 2) * D) * kdk2 - (1 / (D ** 2)) * kdk1 * kdk1)) * self.k * (
+                       E_k + np.log(self.zeta) - np.log(self.prior['zeta'] * self.k))
+        log_lik_x = gammaln(D / 2) - (D / 2) * np.log(2 * np.pi) + (D / 2) * E_k - np.log(
+            (self.k ** (D / 2)) * hyp1f1(0.5, D / 2, self.k)) - (D / 2 / self.k + 1 / D * kdk3) * (
+                           self.u / self.v - self.k) + self.k / D * kdk1 + temp * (
+                           x.dot(self.xi.T) ** 2)
+        return log_lik_x
+
     def var_inf(self, x):
 
         begin = time.time()
-        D = self.D
         for ite in range(self.args.max_iter):
             # compute rho
             E_log_1_pi = np.roll(np.cumsum(digamma(self.h) - digamma(self.g + self.h)), 1)
             E_log_1_pi[0] = 0
 
-            E_k = digamma(self.u) - digamma(self.u + self.v)
-            kdk1 = d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
-            kdk2 = d_hyp1f1(1.5, (D + 2) / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter) * kdk1
-            kdk3 = d_hyp1f1(0.5, D / 2, self.k, iteration=self.max_hy1f1_iter)
-            temp = (1 / D * kdk1 + self.zeta * self.k * (
-                        3 / ((D + 2) * D) * kdk2 - (1 / (D ** 2)) * kdk1 * kdk1)) * self.k * (
-                               E_k + np.log(self.zeta) - np.log(self.prior['zeta'] * self.k))
-            self.rho = gammaln(D / 2) - (D / 2) * np.log(2 * np.pi) + (D / 2) * E_k - np.log(
-                (self.k ** (D / 2)) * hyp1f1(0.5, D / 2, self.k)) - (D / 2 / self.k + 1 / D * kdk3) * (
-                                   self.u / self.v - self.k) + self.k / D * kdk1 + temp * (
-                                   x.dot(self.xi.T) ** 2) + digamma(self.g) - digamma(self.g + self.h) + E_log_1_pi
+            self.rho = self.caclulate_log_lik_x(x) + digamma(self.g) - digamma(self.g + self.h) + E_log_1_pi
 
             log_rho, log_n = log_normalize(self.rho)
             self.rho = np.exp(log_rho)
@@ -117,6 +122,7 @@ class VIModel:
 
             print(ite)
             if ite == self.args.max_iter - 1:
+                lb = self.lower_bound(x)
                 times = time.time() - begin
                 self.k = self.u / self.v
                 self.k[self.k > self.max_k] = self.max_k
@@ -127,6 +133,7 @@ class VIModel:
                     print('k: {}'.format(self.k))
                     print('pi: {}'.format(self.pi))
                     print('times: {}'.format(times))
+                    print('lb: {}'.format(lb))
 
     def calculate_new_com(self):
 
@@ -176,6 +183,65 @@ class VIModel:
             else:
                 temp = rho[:, i + 1:self.T]
                 self.h[i] = self.prior['gamma'] + np.sum(np.sum(temp, 1), 0)
+
+    def lower_bound(self, x):
+        lb = 0
+        T = self.T
+        gamma = np.zeros((T, 2))
+        gamma[:, 0] = self.g
+        gamma[:, 1] = self.h
+        sd = digamma(gamma[:, 0] + gamma[:, 1])
+        dg0 = digamma(gamma[:, 0]) - sd
+        dg1 = digamma(gamma[:, 1]) - sd
+        # V
+        alpha = self.prior['gamma']
+        # Eq[log p(V | 1, alpha)]
+        lpv = (gammaln(1 + alpha) - gammaln(alpha)) * T \
+              + (alpha - 1) * np.sum(dg1)
+        # Eq[log q(V | gamma1, gamma2)]
+        lqv = np.sum(gammaln(gamma[:, 0] + gamma[:, 1]) \
+                     - gammaln(gamma[:, 0]) - gammaln(gamma[:, 1]) \
+                     + (gamma[:, 0] - 1) * dg0 + (gamma[:, 1] - 1) * dg1)
+        lb += lpv - lqv
+
+        # mu
+        # Eq[log p(u|lambda)]
+        kappa = self.prior['u'] / self.prior['v']
+        lpmu = 10000
+        # Eq[log q(u|lambda)]
+        lqmu = np.sum(self.prior['zeta'] * self.k * (self.xi.dot(self.prior['mu'][:, np.newaxis]).reshape(-1) ** 2) +\
+               np.sum(self.rho * self.k * (x.dot(self.xi.T) ** 2), 0))
+        lb += lpmu - lqmu
+
+        # kappa
+        # Eq[log p(kappa)]
+        lptao = - np.sum(self.u / self.v)
+        # Eq[log q(kappa | u, v]
+        lqtao = np.sum(-gammaln(self.u) + (self.u - 1) * digamma(self.u) \
+                       + np.log(self.v) - self.u)
+        lb += lptao - lqtao
+
+        # c
+        phi_cum = np.cumsum(self.rho[:0:-1, :], axis=0)[::-1, :]
+        lpc = 0
+        # Eq[log p(Z | V)]
+        for t in range(T):
+            if t < T - 1:
+                lpc += np.sum(phi_cum[t] * dg1[t])
+            lpc += np.sum(self.rho[t] * dg0[t])
+        n_phi = self.rho
+        # Eq[log q(Z | phi)]
+        lqc = np.sum(n_phi * np.log(n_phi))
+        lb += lpc - lqc
+
+        # x
+        # Eq[log p(X)]
+        likx = self.caclulate_log_lik_x(x)
+        lpx = np.sum(self.rho * likx)
+
+        lb += lpx
+
+        return lb
 
     def fit(self, data):
 

@@ -43,7 +43,7 @@ if __name__ == "__main__":
                                     description='Hierarchical Dirichlet process Mixture Models of datas Distributions')
     parser.add_argument('-c', '--algorithm_category', dest='algorithm_category', help='choose VIModel:0 or SVIModel:1',
                         default=0)
-    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='syn_data2')
+    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='syn_data1')
     parser.add_argument('-lp', '--load_params', dest='load_params', help='load_params', default=1)
     parser.add_argument('-verbose', '--verbose', dest='verbose', help='verbose', default=1)
     # hyper parameters

@@ -92,8 +92,8 @@ def plot_number_cluster(save=False):
     x_major_locator = MultipleLocator(1)
     y_major_locator = MultipleLocator(100)
     ax = plt.gca()
-    ax.plot(ca_num, '-s', ms=6, alpha=1, mfc='blue', label='CDP-WMM')
-    ax.plot(w_num, '-d', c='black', ms=6, alpha=1, mfc='black', label='L-WMM')
+    ax.plot(ca_num, '-s', ms=6, alpha=1, mfc='blue', label='Co-InWMM')
+    ax.plot(w_num, '-d', c='black', ms=6, alpha=1, mfc='black', label='WMM')
     ax.xaxis.set_major_locator(x_major_locator)
     ax.yaxis.set_major_locator(y_major_locator)
     plt.xlim(-0.5, 10.5)
@@ -101,7 +101,10 @@ def plot_number_cluster(save=False):
     plt.xlabel('Number of components', fontsize=14)
     plt.ylabel('Number of images', fontsize=14)
 
-    plt.legend()
+    plt.legend(fontsize=13, markerscale=1.5)
+    leg = ax.get_legend()
+    ltext = leg.get_texts()
+    plt.setp(ltext, fontweight='bold')
 
     if save:
         plt.savefig('{}/fig/category_fig.eps'.format(RESULT_DIR), dpi=200, format='eps')
@@ -148,8 +151,7 @@ def plot_3d(dataset='syn_data1', save=False):
         ax.scatter3D(third[:, 2], third[:, 1], third[:, 0], c=third[:, 1], s=10, cmap='Reds', label='cluster 3', marker='+')
         gca.plot([0, av_t[0]], [0, av_t[1]], [0, av_t[2]], c='r', linewidth=0.5)
         gca.plot([0, av_t[0]], [0, av_t[1]], [0, -av_t[2]], c='r', linewidth=0.5)
-        ax.legend(bbox_to_anchor=(0.14, 1), markerscale=1.5)
-
+        ax.legend(bbox_to_anchor=(0.14, 1), markerscale=2.3, fontsize=13)
         # ax.legend(bbox_to_anchor=(0.81, 1.03), markerscale=1.3, fontsize=13)
     # big_data
     else:
@@ -177,13 +179,15 @@ def plot_3d(dataset='syn_data1', save=False):
         ax.scatter3D(four[:, 0], four[:, 1], four[:, 2], c=four[:, 1], s=10, cmap='Greens', label='cluster 4', marker='o')
         gca.plot([0, av_fo[0]], [0, av_fo[1]], [0, av_fo[2]], c='r', linewidth=0.5)
         gca.plot([0, -av_fo[0]], [0, -av_fo[1]], [0, -av_fo[2]], c='r', linewidth=0.5)
-        ax.legend(bbox_to_anchor=(0.14, 0.95), markerscale=1.5)
-
+        ax.legend(bbox_to_anchor=(0.15, 0.95), markerscale=2.3, fontsize=13)
         # ax.legend(bbox_to_anchor=(0.81 / 0.83, 1.03), markerscale=1.3, fontsize=13)
 
+    leg = ax.get_legend()
+    ltext = leg.get_texts()
+    plt.setp(ltext, fontweight='bold')
     plt.show()
     if save:
-        fig.savefig('./result/{}_fig.jpg'.format(dataset), dpi=200)
+        fig.savefig('./result/fig/{}_fig.jpg'.format(dataset), dpi=200)
 
 
 def get_ellipse(e_x, e_y, a, b, e_angle):
@@ -238,7 +242,7 @@ def change_png2eps(root='./result/figures'):
         plt.imsave('{}/test_{}.eps'.format(root, f_name), img, format='eps', dpi=500)
 
 # plot_number_cluster(save=True)
-# plot_3d('syn_data1', save=True)
+# plot_3d('syn_data2', save=True)
 # plot_eplipse_result()
 # change_png2eps()
 

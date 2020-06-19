@@ -9,6 +9,7 @@
 @Desc: model.py
 """
 try:
+    import os
     import numpy as np
     import time
 
@@ -17,6 +18,7 @@ try:
     from sklearn.cluster import KMeans
     izip = zip
 
+    from config import LOG_DIR
     from utils import cluster_acc, predict, log_normalize, caculate_pi, calculate_mix, d_hyp1f1, s_kmeans
 except ImportError as e:
     print(e)
@@ -123,6 +125,11 @@ class VIModel:
             print(ite)
             if ite == self.args.max_iter - 1:
                 times = time.time() - begin
+                logger = open(os.path.join(LOG_DIR, "log_times_0.txt"), 'a')
+                logger.write(
+                    'nyu: times: {}\n'.format(times)
+                )
+                logger.close()
                 self.k = self.u / self.v
                 self.k[self.k > self.max_k] = self.max_k
                 self.pi = calculate_mix(self.g, self.h, self.T)
@@ -374,6 +381,11 @@ class CVIModel:
             print(ite)
             if ite == self.args.max_iter - 1:
                 times = time.time() - begin
+                logger = open(os.path.join(LOG_DIR, "log_times_1.txt"), 'a')
+                logger.write(
+                    'nyu: times: {}\n'.format(times)
+                )
+                logger.close()
                 self.k = self.u / self.v
                 self.k[self.k > self.max_k] = self.max_k
                 if self.args.verbose:

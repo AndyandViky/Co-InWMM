@@ -86,7 +86,7 @@ class VIModel:
     def caclulate_log_lik_x(self, x):
 
         D = self.D
-        E_k = digamma(self.u) - digamma(self.u + self.v)
+        E_k = digamma(self.u) - np.log(self.v)
         kdk1 = d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
         kdk2 = d_hyp1f1(1.5, (D + 2) / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter) * kdk1
         kdk3 = d_hyp1f1(0.5, D / 2, self.k, iteration=self.max_hy1f1_iter)
@@ -132,7 +132,7 @@ class VIModel:
                     print('k: {}'.format(self.k))
                     print('pi: {}'.format(self.pi))
                     print('times: {}'.format(times))
-                    print('lb: {}'.format(lb))
+                    # print('lb: {}'.format(lb))
 
     def calculate_new_com(self):
 
@@ -315,7 +315,7 @@ class CVIModel:
     def caclulate_log_lik_x(self, x):
 
         D = self.D
-        E_k = digamma(self.u) - digamma(self.u + self.v)
+        E_k = digamma(self.u) - np.log(self.v)
         kdk1 = d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
         kdk2 = d_hyp1f1(1.5, (D + 2) / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter) * kdk1
         kdk3 = d_hyp1f1(0.5, D / 2, self.k, iteration=self.max_hy1f1_iter)

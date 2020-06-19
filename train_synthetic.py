@@ -58,8 +58,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     data = scio.loadmat('./datas/{}.mat'.format(args.data_name))
-    labels = data['z'].reshape(-1).astype(np.int)
+    # labels = data['z'].reshape(-1).astype(np.int)
     data = data['data']
+    labels = np.zeros(1200)
+    labels[:300] = 1
+    labels[300:900] = 2
+    labels[900:] = 3
+    labels = labels.astype(np.int)
 
     # labels = np.empty(4000)
     # labels[:1000] = 1

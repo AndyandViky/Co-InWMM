@@ -299,8 +299,8 @@ class CVIModel:
         (self.N, self.D) = data.shape
 
         kmeans = KMeans(n_clusters=self.T).fit(data)
-        self.rho = repmat(caculate_pi(kmeans.labels_, self.N, self.T), self.N, 1)
-
+        # self.rho = repmat(caculate_pi(kmeans.labels_, self.N, self.T), self.N, 1)
+        self.rho = np.ones((self.N, self.T)) / self.T
         self.prior = {
             'mu': np.sum(data, 0) / np.linalg.norm(np.sum(data, 0)),
             'zeta':self.args.z,
@@ -369,8 +369,9 @@ class CVIModel:
         begin = time.time()
         for ite in range(self.args.max_iter):
             # compute rho
-            self.rho = self.compute_rho(x)
-
+            rho = self.compute_rho(x)
+            print((1 - 1 / (1 + (ite + 1))))
+            self.rho = (1 - 1 / (1 + (ite + 1))) * self.rho + (1 / (1 + (ite + 1))) * rho
             # compute k
             self.k = self.u / self.v
             self.k[self.k > self.max_k] = self.max_k

@@ -139,7 +139,6 @@ class VIModel:
                     print('k: {}'.format(self.k))
                     print('pi: {}'.format(self.pi))
                     print('times: {}'.format(times))
-                    # print('lb: {}'.format(lb))
 
     def calculate_new_com(self):
 
@@ -189,65 +188,6 @@ class VIModel:
             else:
                 temp = rho[:, i + 1:self.T]
                 self.h[i] = self.prior['gamma'] + np.sum(np.sum(temp, 1), 0)
-
-    def lower_bound(self, x):
-        lb = 0
-        T = self.T
-        D = self.D
-        gamma = np.zeros((T, 2))
-        gamma[:, 0] = self.g
-        gamma[:, 1] = self.h
-        sd = digamma(gamma[:, 0] + gamma[:, 1])
-        dg0 = digamma(gamma[:, 0]) - sd
-        dg1 = digamma(gamma[:, 1]) - sd
-        # V
-        alpha = self.prior['gamma']
-        # Eq[log p(V | 1, alpha)]
-        lpv = (gammaln(1 + alpha) - gammaln(alpha)) * T \
-              + (alpha - 1) * np.sum(dg1)
-        # Eq[log q(V | gamma1, gamma2)]
-        lqv = np.sum(gammaln(gamma[:, 0] + gamma[:, 1]) \
-                     - gammaln(gamma[:, 0]) - gammaln(gamma[:, 1]) \
-                     + (gamma[:, 0] - 1) * dg0 + (gamma[:, 1] - 1) * dg1)
-        lb += lpv - lqv
-
-        # mu
-        # Eq[log p(u|lambda)]
-        kdk1 = d_hyp1f1(0.5, D / 2, self.prior['zeta'] * self.k, iteration=self.max_hy1f1_iter)
-        kdk2 = d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
-        lpmu = np.sum(gammaln(D / 2) - (D / 2) * np.log(2 * np.pi) - kdk1 + self.k * (
-                    self.xi.dot(self.prior['mu'][:, np.newaxis]).reshape(-1) ** 2))
-        # Eq[log q(u|lambda)]
-        lqmu = np.sum(gammaln(D / 2) - (D / 2) * np.log(2 * np.pi) - kdk2 + self.k * (np.sum(self.xi ** 2, 1) ** 2))
-        lb += lpmu - lqmu
-
-        # kappa
-        # Eq[log p(kappa)]
-        u, v = self.prior['u'], self.prior['v']
-        lpk = np.sum(
-            u * np.log(v) - gammaln(u) + (u - 1) * (digamma(self.u) - digamma(self.u + self.v)) - v * (self.u / self.v))
-        # Eq[log q(kappa | u, v]
-        lqk = np.sum(self.u * np.log(self.v) - gammaln(self.u) + (self.u - 1) * (
-                    digamma(self.u) - digamma(self.u + self.v)) - self.v * (self.u / self.v))
-        lb += lpk - lqk
-
-        # c
-        # Eq[log p(Z | V)]
-        pi = calculate_mix(self.g, self.h, self.T)
-        lpc = np.sum(self.rho * np.log(pi))
-        n_phi = self.rho
-        # Eq[log q(Z | phi)]
-        lqc = np.sum(n_phi * np.log(n_phi))
-        lb += lpc - lqc
-
-        # x
-        # Eq[log p(X)]
-        likx = self.caclulate_log_lik_x(x)
-        lpx = np.sum(self.rho * likx)
-
-        lb += lpx
-
-        return lb
 
     def fit(self, data):
 
@@ -370,7 +310,6 @@ class CVIModel:
         for ite in range(self.args.max_iter):
             # compute rho
             rho = self.compute_rho(x)
-            print((1 - 1 / (1 + (ite + 1))))
             self.rho = (1 - 1 / (1 + (ite + 1))) * self.rho + (1 / (1 + (ite + 1))) * rho
             # compute k
             self.k = self.u / self.v
@@ -416,46 +355,6 @@ class CVIModel:
             index = np.argmax(value)
             self.zeta[t] = value[index]
             self.xi[t] = vector[:, index]
-
-    def lower_bound(self, x):
-        lb = 0
-        D = self.D
-        # mu
-        # Eq[log p(u|lambda)]
-        kdk1 = d_hyp1f1(0.5, D / 2, self.prior['zeta'] * self.k, iteration=self.max_hy1f1_iter)
-        kdk2 = d_hyp1f1(0.5, D / 2, self.zeta * self.k, iteration=self.max_hy1f1_iter)
-        lpmu = np.sum(gammaln(D / 2) - (D / 2) * np.log(2 * np.pi) - kdk1 + self.k * (
-                    self.xi.dot(self.prior['mu'][:, np.newaxis]).reshape(-1) ** 2))
-        # Eq[log q(u|lambda)]
-        lqmu = np.sum(gammaln(D / 2) - (D / 2) * np.log(2 * np.pi) - kdk2 + self.k * (np.sum(self.xi ** 2, 1) ** 2))
-        lb += lpmu - lqmu
-
-        # kappa
-        # Eq[log p(kappa)]
-        u, v = self.prior['u'], self.prior['v']
-        lpk = np.sum(
-            u * np.log(v) - gammaln(u) + (u - 1) * (digamma(self.u) - digamma(self.u + self.v)) - v * (self.u / self.v))
-        # Eq[log q(kappa | u, v]
-        lqk = np.sum(self.u * np.log(self.v) - gammaln(self.u) + (self.u - 1) * (
-                    digamma(self.u) - digamma(self.u + self.v)) - self.v * (self.u / self.v))
-        lb += lpk - lqk
-
-        # c
-        # Eq[log p(Z | V)]
-        lpc = np.sum(self.rho)
-        n_phi = self.rho
-        # Eq[log q(Z | phi)]
-        lqc = np.sum(n_phi * np.log(n_phi))
-        lb += lpc - lqc
-
-        # x
-        # Eq[log p(X)]
-        likx = self.caclulate_log_lik_x(x)
-        lpx = np.sum(self.rho * likx)
-
-        lb += lpx
-
-        return lb
 
     def fit(self, data):
 

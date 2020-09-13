@@ -22,7 +22,7 @@ sklearn==0.21.3
 ### Run cdp-wmm
 __params:__  
 -name dataset name  
--lp Load hyper parameter or not 
+-lp Load hyper parameter or not  
 -verbose print information or not  
 
 -t truncation of model  
@@ -31,4 +31,4 @@ __params:__
 -m max iterations of training  
 
 __example:__  
-python train.py -name big_data -lp 1 -verbose 1 -t 10 -gamma 1 -mth 0.01 -m 100
+python train.py -name syn_data2 -lp 1 -verbose 1 -t 10 -gamma 1 -mth 0.01 -m 100

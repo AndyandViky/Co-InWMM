@@ -42,8 +42,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='HIN-datas',
                                     description='Hierarchical Dirichlet process Mixture Models of datas Distributions')
     parser.add_argument('-c', '--algorithm_category', dest='algorithm_category', help='choose VIModel:0 or SVIModel:1',
-                        default=0)
-    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='syn_data1')
+                        default=1)
+    parser.add_argument('-name', '--data_name', dest='data_name', help='data_name', default='syn_data2')
     parser.add_argument('-lp', '--load_params', dest='load_params', help='load_params', default=1)
     parser.add_argument('-verbose', '--verbose', dest='verbose', help='verbose', default=1)
     # hyper parameters
@@ -58,24 +58,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     data = scio.loadmat('./datas/{}.mat'.format(args.data_name))
-    # labels = data['z'].reshape(-1).astype(np.int)
+    labels = data['z'].reshape(-1).astype(np.int)
     data = data['data']
-    labels = np.zeros(1200)
-    labels[:300] = 1
-    labels[300:900] = 2
-    labels[900:] = 3
-    labels = labels.astype(np.int)
 
-    # labels = np.empty(4000)
-    # labels[:1000] = 1
-    # labels[1000:2000] = 2
-    # labels[2000:3000] = 3
-    # labels[3000:4000] = 4
-    # # # labels[4000:5000] = 5
-    # # # labels[5000:6000] = 6
-    # labels = labels.astype(np.int)
-    # data1 = scio.loadmat('./datas/Data4.mat')['Data']
-    # scio.savemat('./datas/syn_data2.mat', {'data': data1, 'z': labels})
     print('begin training......')
     print('========================dataset is {}========================'.format(args.data_name))
 

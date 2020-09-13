@@ -1,7 +1,7 @@
 __pycache__*
 .idea/
 .DS_Store
-datas/segmentation/toolbox
+datas/segmentation/
 vmfmix
 log/
 result/cdp-wmm

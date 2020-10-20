@@ -1,5 +1,5 @@
 # CDP-WMM
-Collapsed Variational Inference Dirichlet process Mixture Models of Watson Distributions
+Paper for: Axial Data Modeling with Collapsed Nonparametric Watson Mixture Models and Its Application to Depth Image Analysis?
 ---
 
 ### File
@@ -32,3 +32,16 @@ __params:__
 
 __example:__  
 python train.py -name syn_data2 -lp 1 -verbose 1 -t 10 -gamma 1 -mth 0.01 -m 100
+
+--
+### Reference
+
+    @InProceedings{YANG2020,
+    author="Yang, Lin; Liu, Yuhang and Fan, Wentao",
+    title="Axial Data Modeling with Collapsed Nonparametric Watson Mixture Models and Its Application to Depth Image Analysis",
+    booktitle="Pattern Recognition and Computer Vision",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="17--28",
+    }
